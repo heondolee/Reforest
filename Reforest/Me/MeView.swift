@@ -17,10 +17,8 @@ struct MeView: View {
     @State private var isShowEditCategoryView: Bool = false
     
     init() {
-        // FIXME: 수정해야 함
-        let meCategoryModelList = mockData_meCategoryModelList
-        let profile = mockData_profile
-        
+        let meCategoryModelList = UserDefaultKey.getObjectFromDevice(key: .meCategoryModelList, [MeCategoryModel].self) ?? []
+        let profile = UserDefaultKey.getObjectFromDevice(key: .profile, ProfileModel.self) ?? ProfileModel(name: "", profileImage: nil, value: "")
         
         self._vm = StateObject(wrappedValue: MeViewModel(meCategoryModelList: meCategoryModelList, profile: profile))
         self.selectedContent = selectedContent
@@ -37,9 +35,15 @@ struct MeView: View {
                 meCategoryContentList()
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification, object: nil)) { _ in
+            UserDefaultKey.saveObjectInDevice(key: .meCategoryModelList, content: vm.meCategoryModelList)
+            UserDefaultKey.saveObjectInDevice(key: .profile, content: vm.profile)
+        }
         .onAppear {
-            let selectedMeCategory = vm.meCategoryModelList[0]
-            self.selectedMeCategory = selectedMeCategory
+            if !vm.meCategoryModelList.isEmpty {
+                let selectedMeCategory = vm.meCategoryModelList[0]
+                self.selectedMeCategory = selectedMeCategory
+            }
         }
         .fullScreenCover(isPresented: $vm.isShowProfileView, content: {
             ProfileView(vm: vm)
@@ -85,8 +89,9 @@ extension MeView {
     private func profile() -> some View {
         HStack(alignment: .top, spacing: .zero) {
             VStack(alignment: .leading, spacing: .zero) {
-                if let profileImage = vm.profile.profileImage {
-                    Image(uiImage: profileImage)
+                if let profileImage = vm.profile.profileImage,
+                 let uiImage = UIImage(data: profileImage) {
+                    Image(uiImage: uiImage)
                         .resizable()
                         .scaledToFill()
                         .frame(width: 97, height: 97)

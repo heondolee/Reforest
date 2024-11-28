@@ -7,6 +7,7 @@
 
 import Foundation
 
+// preView를 위한
 let mockData_meCategoryModelList = [
     MeCategoryModel(id: UUID(), title: "성격", contentList: [ContentModel(id: UUID(), headLine: "나의 장점", subLine: SubLineModel(id: UUID(), text: "신중하고 남의 공감을 잘함"))]),
     MeCategoryModel(id: UUID(), title: "경험", contentList: []),
