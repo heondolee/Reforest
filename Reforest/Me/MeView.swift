@@ -14,6 +14,7 @@ struct MeView: View {
     @State private var selectedContent: ContentModel? = nil
     @State private var isShowAddingContentView: Bool = false
     @State private var selectedMeCategory: MeCategoryModel? = nil
+    @State private var isShowEditCategoryView: Bool = false
     
     init() {
         // FIXME: 수정해야 함
@@ -47,6 +48,9 @@ struct MeView: View {
             if let selectedMeCategoryModelId = selectedMeCategory?.id {
                 EditQuestionView(vm: vm, meCategoryID: selectedMeCategoryModelId, content: selectedContent)
             }
+        })
+        .fullScreenCover(isPresented: $isShowEditCategoryView, content: {
+            EditCategoryView(vm: vm)
         })
         .fullScreenCover(isPresented: $isShowAddingContentView, content: {
             if let selectedMeCategoryModelId = selectedMeCategory?.id {
@@ -143,12 +147,17 @@ extension MeView {
                     }
                 }
             }
-            Image(systemName: "ellipsis")
-                .padding(.trailing)
-                .frame(width: 26, height: 26)
-                .onTapGesture {
-                    // 추가해야 함
+            Menu {
+                Button {
+                    isShowEditCategoryView = true
+                } label: {
+                    Label("수정", systemImage: "pencil")
                 }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .frame(width: 26, height: 26)
+                    .foregroundColor(.black)
+            }
         }
         .padding(8)
         .background(.grayA6.opacity(0.1))
@@ -172,7 +181,7 @@ extension MeView {
             }
             
             if let preSelectedMeCategory = selectedMeCategory,
-                let selectedMeCategory = vm.getUpdatedMeCategory(preSelectedMeCategory),
+               let selectedMeCategory = vm.getUpdatedMeCategory(preSelectedMeCategory),
                !selectedMeCategory.contentList.isEmpty {
                 ScrollView(showsIndicators: false) {
                     ForEach(selectedMeCategory.contentList, id: \.self) { content in
