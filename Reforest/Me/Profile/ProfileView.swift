@@ -91,8 +91,17 @@ extension ProfileView {
                     .background(.tertiary.opacity(0.12))
                     .clipShape(Circle())
             }
-            Button {
-                self.isOpenPhotoView = true
+            Menu {
+                Button(action: {
+                    isOpenPhotoView = true
+                }) {
+                    Label("라이브러리에서 선택", systemImage: "photo")
+                }
+                Button(action: {
+                    profile.profileImage = nil
+                }) {
+                    Label("현재 이미지 삭제", systemImage: "trash")
+                }
             } label: {
                 Text("사진 수정")
                     .font(Font.system(size: 17, weight: .bold))

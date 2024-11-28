@@ -8,11 +8,18 @@
 import Foundation
 
 struct MeCategoryModel: Hashable {
-    let title: String
-    let contentList: [MeCategoryContentModel]
+    let id: UUID
+    var title: String
+    var contentList: [ContentModel]
 }
 
-struct MeCategoryContentModel: Hashable {
-    let headLine: String
-    let subLineList: [String]
+struct ContentModel: Hashable, Identifiable {
+    let id: UUID
+    var headLine: String
+    var subLine: SubLineModel
+}
+
+struct SubLineModel: Hashable {
+    let id: UUID
+    var text: String
 }

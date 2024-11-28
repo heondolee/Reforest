@@ -11,6 +11,8 @@ struct MeView: View {
     
     @StateObject private var vm: MeViewModel = MeViewModel()
     
+    @State private var selectedContent: ContentModel? = nil
+    
     var body: some View {
         VStack(spacing: 0) {
             navigationView()
@@ -21,6 +23,9 @@ struct MeView: View {
         }
         .fullScreenCover(isPresented: $vm.isShowProfileView, content: {
             ProfileView(vm: vm)
+        })
+        .fullScreenCover(item: $selectedContent, content: { selectedContent in
+            EditQuestionView(vm: vm, content: selectedContent)
         })
     }
 }
@@ -97,7 +102,7 @@ extension MeView {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: .zero) {
                     ForEach(vm.meCategoryModelList, id: \.self) { meCategory in
-                        let isSelected = vm.selectedMeCategory == meCategory
+                        let isSelected = vm.selectedMeCategoryIndex == vm.getMeCategoryIndex(meCategory)
                         Text(meCategory.title)
                             .font(Font.system(size: 17, weight: .bold))
                             .padding(.horizontal, 20)
@@ -105,7 +110,7 @@ extension MeView {
                             .background(isSelected ? .white : .clear)
                             .cornerRadius(100)
                             .onTapGesture {
-                                vm.selectedMeCategory = meCategory
+                                vm.selectedMeCategoryIndex = vm.getMeCategoryIndex(meCategory)
                             }
                     }
                 }
@@ -122,16 +127,22 @@ extension MeView {
         .cornerRadius(25)
         .padding(.horizontal, 20)
     }
+    @ViewBuilder
     private func meCategoryContentList() -> some View {
-        ScrollView(showsIndicators: false) {
-            if let meCategory = vm.selectedMeCategory {
+        if let index = vm.selectedMeCategoryIndex,
+           !vm.meCategoryModelList[index].contentList.isEmpty {
+            ScrollView(showsIndicators: false) {
+                let meCategory = vm.meCategoryModelList[index]
                 ForEach(meCategory.contentList, id: \.self) { content in
                     meCategoryContentBox(content)
                 }
-            } else {
+            }
+        } else {
+            VStack {
                 Spacer()
                 Text("나에 대해 작성해보세요")
                     .padding(.horizontal, 20)
+                Spacer()
                 Spacer()
             }
         }
@@ -159,29 +170,39 @@ extension MeView {
         .background(.gray)
         .cornerRadius(9)
     }
-    private func meCategoryContentBox(_ content: MeCategoryContentModel) -> some View {
+    private func meCategoryContentBox(_ content: ContentModel) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 0) {
                 Text(content.headLine)
                     .font(Font.system(size: 16, weight: .semibold))
                     .lineLimit(1)
                 Spacer()
-                Image(systemName: "ellipsis")
-                    .frame(width: 26, height: 26)
-                    .onTapGesture {
-                        // 추가해야 함
+                Menu {
+                    Button {
+                        selectedContent = content
+                    } label: {
+                        Label("수정", systemImage: "pencil")
                     }
+                    
+                    Button {
+                        vm.removeContent(by: content.id)
+                    } label: {
+                        Label("삭제", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .frame(width: 26, height: 26)
+                        .foregroundColor(.black)
+                }
             }
             .padding(.bottom, 8)
             VStack(spacing: 5) {
-                ForEach(content.subLineList, id: \.self) { subLine in
-                    HStack(spacing: 0) {
-                        Image(.arrow)
-                            .frame(width: 24, height: 24)
-                        Text(subLine)
-                            .font(Font.system(size: 14))
-                            .lineLimit(2)
-                    }
+                HStack(spacing: 0) {
+                    Image(.arrow)
+                        .frame(width: 24, height: 24)
+                    Text(content.subLine.text)
+                        .font(Font.system(size: 14))
+                        .lineLimit(2)
                 }
             }
         }
