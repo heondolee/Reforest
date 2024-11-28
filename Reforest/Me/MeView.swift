@@ -13,25 +13,32 @@ struct MeView: View {
     
     @State private var selectedContent: ContentModel? = nil
     @State private var isShowAddingContentView: Bool = false
-    @State private var selectedMeCategory: MeCategoryModel?
+    @State private var selectedMeCategory: MeCategoryModel? = nil
     
     init() {
         // FIXME: 수정해야 함
         let meCategoryModelList = mockData_meCategoryModelList
         let profile = mockData_profile
+        
+        
         self._vm = StateObject(wrappedValue: MeViewModel(meCategoryModelList: meCategoryModelList, profile: profile))
         self.selectedContent = selectedContent
         self.isShowAddingContentView = isShowAddingContentView
-        self.selectedMeCategory = meCategoryModelList.first
     }
     
     var body: some View {
-        VStack(spacing: 0) {
-            navigationView()
-            profile()
-            profileButtons()
-            meCategory()
-            meCategoryContentList()
+        NavigationView {
+            VStack(spacing: 0) {
+                navigationView()
+                profile()
+                profileButtons()
+                meCategory()
+                meCategoryContentList()
+            }
+        }
+        .onAppear {
+            let selectedMeCategory = vm.meCategoryModelList[0]
+            self.selectedMeCategory = selectedMeCategory
         }
         .fullScreenCover(isPresented: $vm.isShowProfileView, content: {
             ProfileView(vm: vm)
@@ -163,7 +170,9 @@ extension MeView {
                     }
                     .padding(.trailing, 25)
             }
-            if let selectedMeCategory = selectedMeCategory,
+            
+            if let preSelectedMeCategory = selectedMeCategory,
+                let selectedMeCategory = vm.getUpdatedMeCategory(preSelectedMeCategory),
                !selectedMeCategory.contentList.isEmpty {
                 ScrollView(showsIndicators: false) {
                     ForEach(selectedMeCategory.contentList, id: \.self) { content in

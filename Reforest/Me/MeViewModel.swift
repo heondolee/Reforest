@@ -25,13 +25,19 @@ class MeViewModel: ObservableObject {
         meCategoryModelList.firstIndex(of: meCategory)
     }
     
+    func getUpdatedMeCategory(_ meCategory: MeCategoryModel) -> MeCategoryModel? {
+        if let meCategory = meCategoryModelList.first(where: { $0.id == meCategory.id }) {
+            return meCategory
+        }
+        return nil
+    }
+    
     func removeContent(by contentId: UUID) {
         meCategoryModelList = meCategoryModelList.map { category in
             var updatedCategory = category
             updatedCategory.contentList = category.contentList.filter { $0.id != contentId }
             return updatedCategory
         }
-        dump(self.meCategoryModelList)
     }
     
     func updateContent(MeCategoryID: UUID, editContent: ContentModel) {
@@ -39,9 +45,8 @@ class MeViewModel: ObservableObject {
             if category.id == MeCategoryID {
                 for (contentIndex, content) in category.contentList.enumerated() {
                     if content.id == editContent.id {
-                        meCategoryModelList[categoryIndex].contentList[contentIndex].headLine = editContent.headLine
-                        meCategoryModelList[categoryIndex].contentList[contentIndex].subLine.text = editContent.subLine.text
-                        dump(self.meCategoryModelList)
+                        self.meCategoryModelList[categoryIndex].contentList[contentIndex].headLine = editContent.headLine
+                        self.meCategoryModelList[categoryIndex].contentList[contentIndex].subLine.text = editContent.subLine.text
                         return
                     }
                 }
@@ -52,8 +57,7 @@ class MeViewModel: ObservableObject {
     func addContent(MeCategoryID: UUID, addContent: ContentModel) {
         for (categoryIndex, category) in meCategoryModelList.enumerated() {
             if category.id == MeCategoryID {
-                meCategoryModelList[categoryIndex].contentList.append(addContent)
-                dump(self.meCategoryModelList)
+                self.meCategoryModelList[categoryIndex].contentList.append(addContent)
                 return
             }
         }
