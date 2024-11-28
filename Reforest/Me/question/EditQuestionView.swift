@@ -13,6 +13,7 @@ struct EditQuestionView: View {
     @ObservedObject var vm: MeViewModel
     
     @State var content: ContentModel
+    @State var isShowEmptyAlert: Bool = false
     
     @FocusState private var isKeyBoardOn: Bool
     
@@ -39,6 +40,9 @@ struct EditQuestionView: View {
         .onAppear {
             isKeyBoardOn = true
         }
+        .alert(isPresented: $isShowEmptyAlert) {
+            Alert(title: Text("내용을 모두 입력해주세요"), dismissButton: .default(Text("확인")))
+        }
     }
 }
 
@@ -57,12 +61,16 @@ extension EditQuestionView {
                     }
                     .padding(.trailing, 30)
                 Button {
-                    if isThisEditView {
-                        vm.updateContent(MeCategoryID: meCategoryID, editContent: content)
-                        dismiss()
+                    if content.headLine.isEmpty || content.subLine.text.isEmpty {
+                        isShowEmptyAlert = true
                     } else {
-                        vm.addContent(MeCategoryID: meCategoryID, addContent: content)
-                        dismiss()
+                        if isThisEditView {
+                            vm.updateContent(MeCategoryID: meCategoryID, editContent: content)
+                            dismiss()
+                        } else {
+                            vm.addContent(MeCategoryID: meCategoryID, addContent: content)
+                            dismiss()
+                        }
                     }
                 } label: {
                     Text("완료")
