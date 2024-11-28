@@ -9,9 +9,21 @@ import SwiftUI
 
 struct MeView: View {
     
-    @StateObject private var vm: MeViewModel = MeViewModel()
+    @StateObject private var vm: MeViewModel
     
     @State private var selectedContent: ContentModel? = nil
+    @State private var isShowAddingContentView: Bool = false
+    @State private var selectedMeCategory: MeCategoryModel?
+    
+    init() {
+        // FIXME: 수정해야 함
+        let meCategoryModelList = mockData_meCategoryModelList
+        let profile = mockData_profile
+        self._vm = StateObject(wrappedValue: MeViewModel(meCategoryModelList: meCategoryModelList, profile: profile))
+        self.selectedContent = selectedContent
+        self.isShowAddingContentView = isShowAddingContentView
+        self.selectedMeCategory = meCategoryModelList.first
+    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -25,7 +37,16 @@ struct MeView: View {
             ProfileView(vm: vm)
         })
         .fullScreenCover(item: $selectedContent, content: { selectedContent in
-            EditQuestionView(vm: vm, content: selectedContent)
+            if let selectedMeCategoryModelId = selectedMeCategory?.id {
+                EditQuestionView(vm: vm, meCategoryID: selectedMeCategoryModelId, content: selectedContent)
+            }
+        })
+        .fullScreenCover(isPresented: $isShowAddingContentView, content: {
+            if let selectedMeCategoryModelId = selectedMeCategory?.id {
+                EditQuestionView(vm: vm, meCategoryID: selectedMeCategoryModelId, content: selectedContent)
+            } else {
+                Text("dd")
+            }
         })
     }
 }
@@ -41,7 +62,7 @@ extension MeView {
                 Image(systemName: "plus")
                     .frame(width: 18, height: 18)
                     .padding(10)
-                    .background(.tertiary.opacity(0.12))
+                    .background(.tertiary.opacity(0.2))
                     .cornerRadius(8)
             }
             .padding(.horizontal, 20)
@@ -102,7 +123,7 @@ extension MeView {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: .zero) {
                     ForEach(vm.meCategoryModelList, id: \.self) { meCategory in
-                        let isSelected = vm.selectedMeCategoryIndex == vm.getMeCategoryIndex(meCategory)
+                        let isSelected = selectedMeCategory?.id == meCategory.id
                         Text(meCategory.title)
                             .font(Font.system(size: 17, weight: .bold))
                             .padding(.horizontal, 20)
@@ -110,7 +131,7 @@ extension MeView {
                             .background(isSelected ? .white : .clear)
                             .cornerRadius(100)
                             .onTapGesture {
-                                vm.selectedMeCategoryIndex = vm.getMeCategoryIndex(meCategory)
+                                selectedMeCategory = meCategory
                             }
                     }
                 }
@@ -129,21 +150,34 @@ extension MeView {
     }
     @ViewBuilder
     private func meCategoryContentList() -> some View {
-        if let index = vm.selectedMeCategoryIndex,
-           !vm.meCategoryModelList[index].contentList.isEmpty {
-            ScrollView(showsIndicators: false) {
-                let meCategory = vm.meCategoryModelList[index]
-                ForEach(meCategory.contentList, id: \.self) { content in
-                    meCategoryContentBox(content)
-                }
+        VStack(spacing: 0) {
+            HStack(spacing: .zero) {
+                Spacer()
+                Image(systemName: "plus.app")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 20, height: 20)
+                    .padding(.top, 20)
+                    .onTapGesture {
+                        isShowAddingContentView = true
+                    }
+                    .padding(.trailing, 25)
             }
-        } else {
-            VStack {
-                Spacer()
-                Text("나에 대해 작성해보세요")
-                    .padding(.horizontal, 20)
-                Spacer()
-                Spacer()
+            if let selectedMeCategory = selectedMeCategory,
+               !selectedMeCategory.contentList.isEmpty {
+                ScrollView(showsIndicators: false) {
+                    ForEach(selectedMeCategory.contentList, id: \.self) { content in
+                        meCategoryContentBox(meCategory: selectedMeCategory, content)
+                    }
+                }
+            } else {
+                VStack(spacing: 0) {
+                    Spacer()
+                    Text("나에 대해 작성해보세요")
+                        .padding(.horizontal, 20)
+                    Spacer()
+                    Spacer()
+                }
             }
         }
     }
@@ -170,7 +204,7 @@ extension MeView {
         .background(.gray)
         .cornerRadius(9)
     }
-    private func meCategoryContentBox(_ content: ContentModel) -> some View {
+    private func meCategoryContentBox(meCategory: MeCategoryModel, _ content: ContentModel) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 0) {
                 Text(content.headLine)
@@ -179,6 +213,7 @@ extension MeView {
                 Spacer()
                 Menu {
                     Button {
+                        selectedMeCategory = meCategory
                         selectedContent = content
                     } label: {
                         Label("수정", systemImage: "pencil")

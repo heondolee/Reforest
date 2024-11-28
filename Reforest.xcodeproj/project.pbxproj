@@ -22,6 +22,7 @@
 		F366AEEF2CF8A48000D05D24 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F366AEEE2CF8A48000D05D24 /* ProfileView.swift */; };
 		F366AEF12CF8A4FA00D05D24 /* ProfileModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F366AEF02CF8A4FA00D05D24 /* ProfileModel.swift */; };
 		F366AEF52CF8C1E500D05D24 /* EditQuestionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F366AEF42CF8C1E500D05D24 /* EditQuestionView.swift */; };
+		F366AEF72CF8D62900D05D24 /* mockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = F366AEF62CF8D62900D05D24 /* mockData.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,6 +42,7 @@
 		F366AEEE2CF8A48000D05D24 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		F366AEF02CF8A4FA00D05D24 /* ProfileModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileModel.swift; sourceTree = "<group>"; };
 		F366AEF42CF8C1E500D05D24 /* EditQuestionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditQuestionView.swift; sourceTree = "<group>"; };
+		F366AEF62CF8D62900D05D24 /* mockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = mockData.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -102,6 +104,7 @@
 				F366AEE92CF8A31600D05D24 /* MeViewModel.swift */,
 				F366AEF32CF8C1DA00D05D24 /* question */,
 				F366AEF22CF8A51000D05D24 /* Profile */,
+				F366AEF62CF8D62900D05D24 /* mockData.swift */,
 			);
 			path = Me;
 			sourceTree = "<group>";
@@ -209,6 +212,7 @@
 				F366AED02CF8877400D05D24 /* ContentView2.swift in Sources */,
 				F366AEED2CF8A34E00D05D24 /* MeView.swift in Sources */,
 				F366AEE32CF8954900D05D24 /* ImagePicker.swift in Sources */,
+				F366AEF72CF8D62900D05D24 /* mockData.swift in Sources */,
 				F366AEEA2CF8A31600D05D24 /* MeViewModel.swift in Sources */,
 				F366AECE2CF8877400D05D24 /* ReforestApp.swift in Sources */,
 				F366AEF52CF8C1E500D05D24 /* EditQuestionView.swift in Sources */,

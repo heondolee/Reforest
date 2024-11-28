@@ -145,5 +145,5 @@ extension ProfileView {
 }
 
 #Preview {
-    ProfileView(vm: MeViewModel())
+    ProfileView(vm: MeViewModel(meCategoryModelList: mockData_meCategoryModelList, profile: mockData_profile))
 }

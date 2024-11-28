@@ -16,6 +16,21 @@ struct EditQuestionView: View {
     
     @FocusState private var isKeyBoardOn: Bool
     
+    let isThisEditView: Bool
+    let meCategoryID: UUID
+    
+    init(vm: MeViewModel, meCategoryID: UUID, content: ContentModel?) {
+        self.vm = vm
+        self.meCategoryID = meCategoryID
+        if let content {
+            self._content = State(initialValue: content)
+            self.isThisEditView = true
+        } else {
+            self._content = State(initialValue: ContentModel(id: UUID(), headLine: "", subLine: SubLineModel(id: UUID(), text: "")))
+            self.isThisEditView = false
+        }
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: .zero) {
             NavigationView()
@@ -42,8 +57,13 @@ extension EditQuestionView {
                     }
                     .padding(.trailing, 30)
                 Button {
-                    vm.updateSubLineText(editContent: content)
-                    dismiss()
+                    if isThisEditView {
+                        vm.updateContent(MeCategoryID: meCategoryID, editContent: content)
+                        dismiss()
+                    } else {
+                        vm.addContent(MeCategoryID: meCategoryID, addContent: content)
+                        dismiss()
+                    }
                 } label: {
                     Text("완료")
                         .font(Font.system(size: 20, weight: .bold))
@@ -89,5 +109,5 @@ extension EditQuestionView {
 }
 
 #Preview {
-    EditQuestionView(vm: MeViewModel(), content: ContentModel(id: UUID(), headLine: "나의 장점", subLine: SubLineModel(id: UUID(), text: "신중하고 남의 공감을 잘함")))
+    EditQuestionView(vm: MeViewModel(meCategoryModelList: mockData_meCategoryModelList, profile: mockData_profile), meCategoryID: UUID(), content: ContentModel(id: UUID(), headLine: "나의 장점", subLine: SubLineModel(id: UUID(), text: "신중하고 남의 공감을 잘함")))
 }
