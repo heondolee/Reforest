@@ -18,8 +18,10 @@ struct MeView: View {
     
     init() {
         let meCategoryModelList = UserDefaultKey.getObjectFromDevice(key: .meCategoryModelList, [MeCategoryModel].self) ?? []
-        let profile = UserDefaultKey.getObjectFromDevice(key: .profile, ProfileModel.self) ?? ProfileModel(name: "", profileImage: nil, value: "")
-        
+        let profileName = UserDefaultKey.getValueFromDevice(key: .profileName, String.self) ?? ""
+        let profileValue = UserDefaultKey.getValueFromDevice(key: .profileValue, String.self) ?? ""
+        let profileImage = UserDefaultKey.getValueFromDevice(key: .profileImage, Data.self) ?? Data()
+        let profile = ProfileModel(name: profileName, profileImage: UIImage(data: profileImage), value: profileValue)
         self._vm = StateObject(wrappedValue: MeViewModel(meCategoryModelList: meCategoryModelList, profile: profile))
         self.selectedContent = selectedContent
         self.isShowAddingContentView = isShowAddingContentView
@@ -37,7 +39,9 @@ struct MeView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification, object: nil)) { _ in
             UserDefaultKey.saveObjectInDevice(key: .meCategoryModelList, content: vm.meCategoryModelList)
-            UserDefaultKey.saveObjectInDevice(key: .profile, content: vm.profile)
+            UserDefaultKey.saveValueInDevice(key: .profileName, content: vm.profile.name)
+            UserDefaultKey.saveValueInDevice(key: .profileValue, content: vm.profile.value)
+            UserDefaultKey.saveValueInDevice(key: .profileImage, content: vm.profile.profileImage?.pngData())
         }
         .onAppear {
             if !vm.meCategoryModelList.isEmpty {
@@ -89,9 +93,8 @@ extension MeView {
     private func profile() -> some View {
         HStack(alignment: .top, spacing: .zero) {
             VStack(alignment: .leading, spacing: .zero) {
-                if let profileImage = vm.profile.profileImage,
-                 let uiImage = UIImage(data: profileImage) {
-                    Image(uiImage: uiImage)
+                if let profileImage = vm.profile.profileImage {
+                    Image(uiImage: profileImage)
                         .resizable()
                         .scaledToFill()
                         .frame(width: 97, height: 97)

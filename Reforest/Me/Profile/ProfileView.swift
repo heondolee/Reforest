@@ -75,9 +75,8 @@ extension ProfileView {
     }
     private func ProfileView() -> some View {
         VStack(spacing: 0) {
-            if let profileImage = profile.profileImage,
-                let uiImage = UIImage(data: profileImage) {
-                   Image(uiImage: uiImage)
+            if let profileImage = profile.profileImage {
+                   Image(uiImage: profileImage)
                     .resizable()
                     .scaledToFill()
                     .frame(width: 97, height: 97)

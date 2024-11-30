@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-struct ProfileModel: Codable {
+struct ProfileModel {
     var name: String
-    var profileImage: Data?
+    var profileImage: UIImage?
     var value: String
 }

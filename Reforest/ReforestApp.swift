@@ -2,7 +2,7 @@
 //  ReforestApp.swift
 //  Reforest
 //
-//  Created by 가은리 on 11/28/24.
+//  Created by 헌도리 on 11/28/24.
 //
 
 import SwiftUI
