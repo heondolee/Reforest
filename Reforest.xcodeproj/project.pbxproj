@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F309FAF62CFAF6380062F4DF /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = F309FAF52CFAF6380062F4DF /* .gitignore */; };
 		F366AECE2CF8877400D05D24 /* ReforestApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F366AECD2CF8877400D05D24 /* ReforestApp.swift */; };
 		F366AED02CF8877400D05D24 /* ContentView2.swift in Sources */ = {isa = PBXBuildFile; fileRef = F366AECF2CF8877400D05D24 /* ContentView2.swift */; };
 		F366AED22CF8877600D05D24 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F366AED12CF8877600D05D24 /* Assets.xcassets */; };
@@ -28,6 +29,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		F309FAF52CFAF6380062F4DF /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		F366AECA2CF8877400D05D24 /* Reforest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Reforest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F366AECD2CF8877400D05D24 /* ReforestApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReforestApp.swift; sourceTree = "<group>"; };
 		F366AECF2CF8877400D05D24 /* ContentView2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView2.swift; sourceTree = "<group>"; };
@@ -63,6 +65,7 @@
 		F366AEC12CF8877400D05D24 = {
 			isa = PBXGroup;
 			children = (
+				F309FAF52CFAF6380062F4DF /* .gitignore */,
 				F366AECC2CF8877400D05D24 /* Reforest */,
 				F366AECB2CF8877400D05D24 /* Products */,
 			);
@@ -200,6 +203,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F366AED52CF8877600D05D24 /* Preview Assets.xcassets in Resources */,
+				F309FAF62CFAF6380062F4DF /* .gitignore in Resources */,
 				F366AED22CF8877600D05D24 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
