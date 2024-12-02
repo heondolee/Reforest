@@ -78,11 +78,6 @@ extension MeView {
                     .font(.largeTitle)
                     .fontWeight(.bold)
                 Spacer()
-                Image(systemName: "plus")
-                    .frame(width: 18, height: 18)
-                    .padding(10)
-                    .background(.tertiary.opacity(0.2))
-                    .cornerRadius(8)
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 13)
