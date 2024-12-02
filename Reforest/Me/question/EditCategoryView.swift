@@ -97,19 +97,35 @@ extension EditCategoryView {
                 .padding(.bottom, 10)
                 .padding(.horizontal, 20)
                 List {
-                    ForEach(meCategoryModelList, id: \.self) { meCategory in
-                        Text(meCategory.title)
-                            .font(Font.system(size: 16, weight: .semibold))
+                        ForEach(meCategoryModelList, id: \.id) { meCategory in
+                            HStack {
+                                Text(meCategory.title)
+                                    .font(Font.system(size: 16, weight: .semibold))
+                                
+                                Spacer() // 오른쪽 정렬
+                                
+                                Button(action: {
+                                    deleteItem(meCategory: meCategory)
+                                }) {
+                                    Image(systemName: "trash")
+                                        .foregroundColor(.red)
+                                }
+                            }
+                            .padding(.vertical, 8)
+                        }
+                        .onMove(perform: moveItem)
                     }
-                    .onMove(perform: moveItem)
-                }
-                .environment(\.editMode, $editMode)
+                    .environment(\.editMode, $editMode)
             }
         }
     }
 }
 
 extension EditCategoryView {
+    // 항목 삭제 함수
+    private func deleteItem(meCategory: MeCategoryModel) {
+        meCategoryModelList.removeAll { $0.id == meCategory.id }
+    }
     // 항목을 이동시키는 함수
     private func moveItem(from source: IndexSet, to destination: Int) {
         meCategoryModelList.move(fromOffsets: source, toOffset: destination)
