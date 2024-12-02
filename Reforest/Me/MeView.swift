@@ -48,6 +48,16 @@ struct MeView: View {
                 let selectedMeCategory = vm.meCategoryModelList[0]
                 self.selectedMeCategory = selectedMeCategory
             }
+            // 사용자가 직접 카테고리를 선택하지 않았다면 디폴트로 첫 번째 카테고리를 선택
+            if selectedMeCategory == nil, !vm.meCategoryModelList.isEmpty {
+                self.selectedMeCategory = vm.meCategoryModelList.first
+            }
+        }
+        .onChange(of: vm.meCategoryModelList) {
+            // 새 카테고리가 추가되었을 때 디폴트로 첫 번째 카테고리를 선택
+            if selectedMeCategory == nil, !vm.meCategoryModelList.isEmpty {
+                self.selectedMeCategory = vm.meCategoryModelList.first
+            }
         }
         .fullScreenCover(isPresented: $vm.isShowProfileView, content: {
             ProfileView(vm: vm)
@@ -64,7 +74,7 @@ struct MeView: View {
             if let selectedMeCategoryModelId = selectedMeCategory?.id {
                 EditQuestionView(vm: vm, meCategoryID: selectedMeCategoryModelId, content: selectedContent)
             } else {
-                Text("dd")
+                Text("카테고리가 선택되지 않음.")
             }
         })
     }
@@ -167,17 +177,19 @@ extension MeView {
     @ViewBuilder
     private func meCategoryContentList() -> some View {
         VStack(spacing: 0) {
-            HStack(spacing: .zero) {
-                Spacer()
-                Image(systemName: "plus.app")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 20, height: 20)
-                    .padding(.top, 20)
-                    .onTapGesture {
-                        isShowAddingContentView = true
-                    }
-                    .padding(.trailing, 25)
+            if !vm.meCategoryModelList.isEmpty {
+                HStack(spacing: .zero) {
+                    Spacer()
+                    Image(systemName: "plus.app")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 20, height: 20)
+                        .padding(.top, 20)
+                        .onTapGesture {
+                            isShowAddingContentView = true
+                        }
+                        .padding(.trailing, 25)
+                }
             }
             
             if let preSelectedMeCategory = selectedMeCategory,

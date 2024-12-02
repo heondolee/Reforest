@@ -1,11 +1,5 @@
-//
-//  ProfileView.swift
-//  Reforest
-//
-//  Created by 가은리 on 11/28/24.
-//
-
 import SwiftUI
+import PhotosUI
 
 struct ProfileView: View {
     @Environment(\.dismiss) private var dismiss
@@ -73,10 +67,11 @@ extension ProfileView {
             Divider()
         }
     }
+    
     private func ProfileView() -> some View {
         VStack(spacing: 0) {
             if let profileImage = profile.profileImage {
-                   Image(uiImage: profileImage)
+                Image(uiImage: profileImage)
                     .resizable()
                     .scaledToFill()
                     .frame(width: 97, height: 97)
@@ -93,7 +88,7 @@ extension ProfileView {
             }
             Menu {
                 Button(action: {
-                    isOpenPhotoView = true
+                    checkPhotoLibraryPermission()
                 }) {
                     Label("라이브러리에서 선택", systemImage: "photo")
                 }
@@ -110,6 +105,7 @@ extension ProfileView {
         }
         .padding(.top, 20)
     }
+    
     private func NameView() -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("이름")
@@ -124,6 +120,7 @@ extension ProfileView {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.bottom, 15)
     }
+    
     private func ValueView() -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("가치관")
@@ -142,8 +139,23 @@ extension ProfileView {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
-}
-
-#Preview {
-    ProfileView(vm: MeViewModel(meCategoryModelList: mockData_meCategoryModelList, profile: mockData_profile))
+    
+    private func checkPhotoLibraryPermission() {
+        let status = PHPhotoLibrary.authorizationStatus()
+        switch status {
+        case .notDetermined:
+            PHPhotoLibrary.requestAuthorization { newStatus in
+                if newStatus == .authorized || newStatus == .limited {
+                    DispatchQueue.main.async {
+                        isOpenPhotoView = true
+                    }
+                }
+            }
+        case .authorized, .limited:
+            isOpenPhotoView = true
+        default:
+            // 권한이 없을 때 처리
+            print("사진 접근 권한이 필요합니다.")
+        }
+    }
 }

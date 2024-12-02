@@ -67,7 +67,7 @@ extension EditCategoryView {
             VStack {
                 HStack {
                     if isEditMode {
-                        TextField("질문을 입력하세요.", text: $editText)
+                        TextField("카테고리를 입력하세요.", text: $editText)
                             .tint(.black)
                             .font(Font.system(size: 16))
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -76,7 +76,7 @@ extension EditCategoryView {
                             isEditMode = false
                             meCategoryModelList.append(MeCategoryModel(id: UUID(), title: editText, contentList: []))
                         } label: {
-                            Text("질문 추가")
+                            Text("카테고리 추가")
                                 .font(Font.system(size: 16, weight: .semibold))
                         }
                     } else {
