@@ -87,6 +87,8 @@ extension MeView {
                 Text("나")
                     .font(.largeTitle)
                     .fontWeight(.bold)
+                    
+                    
                 Spacer()
             }
             .padding(.horizontal, 20)
@@ -114,16 +116,17 @@ extension MeView {
                         .background(.tertiary.opacity(0.12))
                         .clipShape(Circle())
                 }
-                Text(vm.profile.name)
-                    .font(Font.system(size: 15, weight: .bold))
+                Text(vm.profile.name.isEmpty ? "이름" : vm.profile.name)                    .font(Font.system(size: 15, weight: .bold))
                     .padding(.top, 10)
+                    .opacity(vm.profile.name.isEmpty ? 0.5 : 1.0) // 흐림 효과
             }
             .padding(.trailing, 20)
-            Text(vm.profile.value)
+            Text(vm.profile.value.isEmpty ? "가치관" : vm.profile.value)
                 .padding(15)
                 .frame(maxWidth: .infinity, maxHeight: 96, alignment: .topLeading)
                 .background(.lightYellow)
                 .cornerRadius(12)
+                .opacity(vm.profile.value.isEmpty ? 0.5 : 1.0) // 흐림 효과
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 15)
@@ -135,6 +138,16 @@ extension MeView {
                 .onTapGesture {
                     vm.isShowProfileView = true
                 }
+            if !vm.meCategoryModelList.isEmpty {
+                Image(.stepper)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 30, height: 30)
+                    .onTapGesture {
+                        isShowAddingContentView = true
+                    }
+                    .padding(.leading, 15)
+            }
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 20)
@@ -177,21 +190,6 @@ extension MeView {
     @ViewBuilder
     private func meCategoryContentList() -> some View {
         VStack(spacing: 0) {
-            if !vm.meCategoryModelList.isEmpty {
-                HStack(spacing: .zero) {
-                    Spacer()
-                    Image(systemName: "plus.app")
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 20, height: 20)
-                        .padding(.top, 20)
-                        .onTapGesture {
-                            isShowAddingContentView = true
-                        }
-                        .padding(.trailing, 25)
-                }
-            }
-            
             if let preSelectedMeCategory = selectedMeCategory,
                let selectedMeCategory = vm.getUpdatedMeCategory(preSelectedMeCategory),
                !selectedMeCategory.contentList.isEmpty {

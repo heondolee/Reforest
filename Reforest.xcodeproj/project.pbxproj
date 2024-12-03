@@ -70,12 +70,12 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		F3132FD02CFEB905000105E1 /* Navigation */ = {
+		F3132FD02CFEB905000105E1 /* TabBar */ = {
 			isa = PBXGroup;
 			children = (
 				F3132FD12CFEB920000105E1 /* MainTabView.swift */,
 			);
-			path = Navigation;
+			path = TabBar;
 			sourceTree = "<group>";
 		};
 		F3132FD32CFEBE70000105E1 /* Home */ = {
@@ -132,12 +132,12 @@
 		F366AECC2CF8877400D05D24 /* Reforest */ = {
 			isa = PBXGroup;
 			children = (
-				F3132FD92CFEBFA1000105E1 /* Social */,
-				F3132FD82CFEBF95000105E1 /* Vision */,
-				F3132FD72CFEBF8A000105E1 /* Plan */,
 				F3132FD32CFEBE70000105E1 /* Home */,
-				F3132FD02CFEB905000105E1 /* Navigation */,
 				F366AEE42CF8A2E000D05D24 /* Me */,
+				F3132FD72CFEBF8A000105E1 /* Plan */,
+				F3132FD82CFEBF95000105E1 /* Vision */,
+				F3132FD92CFEBFA1000105E1 /* Social */,
+				F3132FD02CFEB905000105E1 /* TabBar */,
 				F366AEEB2CF8A33600D05D24 /* Utility */,
 				F366AED12CF8877600D05D24 /* Assets.xcassets */,
 				F366AED62CF8877600D05D24 /* Persistence.swift */,
