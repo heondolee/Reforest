@@ -97,25 +97,39 @@ extension EditCategoryView {
                 .padding(.bottom, 10)
                 .padding(.horizontal, 20)
                 List {
-                        ForEach(meCategoryModelList, id: \.id) { meCategory in
-                            HStack {
-                                Text(meCategory.title)
-                                    .font(Font.system(size: 16, weight: .semibold))
-                                
-                                Spacer() // 오른쪽 정렬
-                                
-                                Button(action: {
-                                    deleteItem(meCategory: meCategory)
-                                }) {
-                                    Image(systemName: "trash")
-                                        .foregroundColor(.red)
-                                }
+                    ForEach(meCategoryModelList, id: \.id) { meCategory in
+                        HStack {
+                            Text(meCategory.title)
+                                .font(Font.system(size: 16, weight: .semibold))
+                                .padding(.leading, 16) // 텍스트 왼쪽 여백
+                            
+                            Spacer() // 텍스트를 왼쪽 정렬
+                            
+                            // 쓰레기통 버튼을 오른쪽에 배치
+                            Button(action: {
+                                deleteItem(meCategory: meCategory)
+                            }) {
+                                Image(systemName: "trash")
+                                    .foregroundColor(.red)
+                                    .frame(width: 24, height: 24)
                             }
-                            .padding(.vertical, 8)
+                            .buttonStyle(PlainButtonStyle()) // 버튼 스타일을 기본으로 설정
+                            .padding(.trailing, 16) // 버튼 오른쪽 여백
                         }
-                        .onMove(perform: moveItem)
+                        .padding(.vertical, 14.0)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.white)
+                                .shadow(color: Color.black.opacity(0.1), radius: 3, x: 0, y: 2)
+                        )
+                        .padding(.horizontal, 8) // 각 리스트 항목의 좌우 여백
+                        .listRowSeparator(.hidden) // 구분선 제거
                     }
-                    .environment(\.editMode, $editMode)
+                    .onMove(perform: moveItem)
+                }
+                .listStyle(PlainListStyle()) // 리스트 스타일 간소화
+                .environment(\.editMode, $editMode)
+
             }
         }
     }
