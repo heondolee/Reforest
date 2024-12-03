@@ -203,6 +203,7 @@ extension MeView {
                     Spacer()
                     Text("나에 대해 작성해보세요")
                         .padding(.horizontal, 20)
+                        .opacity(0.5) // 흐림 효과
                     Spacer()
                     Spacer()
                 }
