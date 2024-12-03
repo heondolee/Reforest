@@ -129,7 +129,7 @@ extension EditCategoryView {
                 }
                 .listStyle(PlainListStyle()) // 리스트 스타일 간소화
                 .environment(\.editMode, $editMode)
-
+ 
             }
         }
     }
