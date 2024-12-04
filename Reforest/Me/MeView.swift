@@ -62,21 +62,40 @@ struct MeView: View {
         .fullScreenCover(isPresented: $vm.isShowProfileView, content: {
             ProfileView(vm: vm)
         })
-        .fullScreenCover(item: $selectedContent, content: { selectedContent in
+        .fullScreenCover(item: $selectedContent) { selectedContent in
             if let selectedMeCategoryModelId = selectedMeCategory?.id {
-                EditQuestionView(vm: vm, meCategoryID: selectedMeCategoryModelId, content: selectedContent)
+                EditQuestionView(
+                    vm: vm,
+                    content: selectedContent, // 옵셔널 언래핑된 콘텐츠
+                    isShowEmptyAlert: false, // 기본값 추가
+                    isThisEditView: true, // 편집 모드로 설정
+                    meCategoryID: selectedMeCategoryModelId
+                )
+            } else {
+                Text("카테고리가 선택되지 않았습니다.")
             }
-        })
+        }
         .fullScreenCover(isPresented: $isShowEditCategoryView, content: {
             EditCategoryView(vm: vm)
         })
-        .fullScreenCover(isPresented: $isShowAddingContentView, content: {
+        .fullScreenCover(isPresented: $isShowAddingContentView) {
             if let selectedMeCategoryModelId = selectedMeCategory?.id {
-                EditQuestionView(vm: vm, meCategoryID: selectedMeCategoryModelId, content: selectedContent)
+                EditQuestionView(
+                    vm: vm,
+                    content: ContentModel(
+                        id: UUID(),
+                        headLine: "",
+                        subLines: []
+                    ), // 새 콘텐츠 생성
+                    isShowEmptyAlert: false, // 기본값 추가
+                    isThisEditView: false, // 새 콘텐츠 추가 모드로 설정
+                    meCategoryID: selectedMeCategoryModelId
+                )
             } else {
-                Text("카테고리가 선택되지 않음.")
+                Text("카테고리가 선택되지 않았습니다.")
             }
-        })
+        }
+
     }
 }
 
@@ -178,14 +197,16 @@ extension MeView {
                 }
             } label: {
                 Image(systemName: "ellipsis")
-                    .frame(width: 26, height: 26)
+                    .frame(width: 22, height: 22)
                     .foregroundColor(.black)
             }
         }
-        .padding(8)
+        .frame(height: 26)
+        .padding(10)
         .background(.grayA6.opacity(0.1))
         .cornerRadius(25)
         .padding(.horizontal, 20)
+        .padding(.bottom, 10)
     }
     @ViewBuilder
     private func meCategoryContentList() -> some View {
@@ -255,24 +276,26 @@ extension MeView {
                     }
                 } label: {
                     Image(systemName: "ellipsis")
-                        .frame(width: 26, height: 26)
+                        .frame(width: 22, height: 22)
                         .foregroundColor(.black)
                 }
             }
-            .padding(.bottom, 8)
+            .padding(.bottom, 6)
             VStack(spacing: 5) {
-                HStack(spacing: 0) {
-                    Image(.arrow)
-                        .frame(width: 24, height: 24)
-                    Text(content.subLine.text)
-                        .font(Font.system(size: 14))
-                        .lineLimit(2)
+                ForEach(content.subLines, id: \.id) { subLine in
+                    HStack(spacing: 0) {
+                        Image(systemName: "arrow.right")
+                            .frame(width: 24, height: 24)
+                        Text(subLine.text)
+                            .font(Font.system(size: 14))
+                            .lineLimit(2)
+                    }
                 }
             }
         }
         .whiteBoxWithShadow(lineSpacing: 8)
         .padding(.horizontal, 20)
-        .padding(.top, 20)
+        .padding(.top, 10)
     }
 }
 

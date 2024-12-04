@@ -11,8 +11,9 @@
 		F3132FD22CFEB920000105E1 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3132FD12CFEB920000105E1 /* MainTabView.swift */; };
 		F3132FD62CFEBF13000105E1 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3132FD52CFEBF13000105E1 /* HomeView.swift */; };
 		F3132FDE2CFEBFFC000105E1 /* SocialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3132FDD2CFEBFFC000105E1 /* SocialView.swift */; };
-		F3132FE02CFEC009000105E1 /* VisonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3132FDF2CFEC009000105E1 /* VisonView.swift */; };
 		F3132FE22CFEC014000105E1 /* PlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3132FE12CFEC014000105E1 /* PlanView.swift */; };
+		F3132FE42CFEF3B7000105E1 /* VisionCategoryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3132FE32CFEF3B7000105E1 /* VisionCategoryModel.swift */; };
+		F3132FE62D00082D000105E1 /* VisionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3132FE52D00082D000105E1 /* VisionView.swift */; };
 		F366AECE2CF8877400D05D24 /* ReforestApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F366AECD2CF8877400D05D24 /* ReforestApp.swift */; };
 		F366AED22CF8877600D05D24 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F366AED12CF8877600D05D24 /* Assets.xcassets */; };
 		F366AED52CF8877600D05D24 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F366AED42CF8877600D05D24 /* Preview Assets.xcassets */; };
@@ -37,8 +38,9 @@
 		F3132FD12CFEB920000105E1 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		F3132FD52CFEBF13000105E1 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		F3132FDD2CFEBFFC000105E1 /* SocialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialView.swift; sourceTree = "<group>"; };
-		F3132FDF2CFEC009000105E1 /* VisonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisonView.swift; sourceTree = "<group>"; };
 		F3132FE12CFEC014000105E1 /* PlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanView.swift; sourceTree = "<group>"; };
+		F3132FE32CFEF3B7000105E1 /* VisionCategoryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionCategoryModel.swift; sourceTree = "<group>"; };
+		F3132FE52D00082D000105E1 /* VisionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionView.swift; sourceTree = "<group>"; };
 		F366AECA2CF8877400D05D24 /* Reforest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Reforest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F366AECD2CF8877400D05D24 /* ReforestApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReforestApp.swift; sourceTree = "<group>"; };
 		F366AED12CF8877600D05D24 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -97,7 +99,8 @@
 		F3132FD82CFEBF95000105E1 /* Vision */ = {
 			isa = PBXGroup;
 			children = (
-				F3132FDF2CFEC009000105E1 /* VisonView.swift */,
+				F3132FE32CFEF3B7000105E1 /* VisionCategoryModel.swift */,
+				F3132FE52D00082D000105E1 /* VisionView.swift */,
 			);
 			path = Vision;
 			sourceTree = "<group>";
@@ -270,9 +273,10 @@
 				F366AED72CF8877600D05D24 /* Persistence.swift in Sources */,
 				F366AEF92CF8E0E200D05D24 /* EditCategoryView.swift in Sources */,
 				F366AEE62CF8A2F800D05D24 /* MeCategoryModel.swift in Sources */,
+				F3132FE42CFEF3B7000105E1 /* VisionCategoryModel.swift in Sources */,
 				F366AEE12CF887AE00D05D24 /* ContentView.swift in Sources */,
-				F3132FE02CFEC009000105E1 /* VisonView.swift in Sources */,
 				F3132FE22CFEC014000105E1 /* PlanView.swift in Sources */,
+				F3132FE62D00082D000105E1 /* VisionView.swift in Sources */,
 				F3132FDE2CFEBFFC000105E1 /* SocialView.swift in Sources */,
 				F3132FD22CFEB920000105E1 /* MainTabView.swift in Sources */,
 				F366AEF12CF8A4FA00D05D24 /* ProfileModel.swift in Sources */,
@@ -437,6 +441,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				NEW_SETTING = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.rundo.Reforest;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -474,6 +479,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				NEW_SETTING = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.rundo.Reforest;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

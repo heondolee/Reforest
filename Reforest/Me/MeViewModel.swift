@@ -45,8 +45,7 @@ class MeViewModel: ObservableObject {
             if category.id == MeCategoryID {
                 for (contentIndex, content) in category.contentList.enumerated() {
                     if content.id == editContent.id {
-                        self.meCategoryModelList[categoryIndex].contentList[contentIndex].headLine = editContent.headLine
-                        self.meCategoryModelList[categoryIndex].contentList[contentIndex].subLine.text = editContent.subLine.text
+                        self.meCategoryModelList[categoryIndex].contentList[contentIndex] = editContent
                         return
                     }
                 }

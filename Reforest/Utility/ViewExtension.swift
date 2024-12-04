@@ -8,7 +8,7 @@
 import SwiftUI
 
 extension View {
-    func whiteBoxWithShadow(padding: (horizontal: CGFloat, vertical: CGFloat) = (20, 20), lineSpacing: CGFloat) -> some View {
+    func whiteBoxWithShadow(padding: (horizontal: CGFloat, vertical: CGFloat) = (10, 12), lineSpacing: CGFloat) -> some View {
         self
             .padding(.horizontal, padding.horizontal)
             .padding(.vertical, padding.vertical)
@@ -18,7 +18,7 @@ extension View {
             .cornerRadius(12)
             .shadow(
                 color: .black.opacity(0.1),
-                radius: CGFloat(15),
+                radius: CGFloat(8),
                 x: CGFloat(0), y: CGFloat(3)
             )
     }
