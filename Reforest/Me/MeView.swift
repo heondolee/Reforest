@@ -278,7 +278,7 @@ extension MeView {
         }
         .whiteBoxWithShadow(lineSpacing: 8)
         .padding(.horizontal, 20)
-        .padding(.top, 20)
+        .padding(.top, 10)
     }
 }
 
