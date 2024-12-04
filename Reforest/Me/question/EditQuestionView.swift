@@ -1,10 +1,3 @@
-//
-//  EditQuestionView.swift
-//  Reforest
-//
-//  Created by 가은리 on 11/29/24.
-//
-
 import SwiftUI
 
 struct EditQuestionView: View {
@@ -44,8 +37,9 @@ struct EditQuestionView: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: .zero) {
-            NavigationView()
+        VStack(alignment: .leading, spacing: 0) {
+            NavigationHeaderView()
+            CategorySelectorView()
             ContentEditView()
         }
         .onAppear {
@@ -58,14 +52,15 @@ struct EditQuestionView: View {
 }
 
 extension EditQuestionView {
-    private func NavigationView() -> some View {
+    
+    private func NavigationHeaderView() -> some View {
         VStack(spacing: 0) {
             HStack(spacing: 0) {
                 Text("나 - 질문 수정하기")
                     .font(Font.system(size: 22, weight: .bold))
                 Spacer()
                 Text("취소")
-                    .foregroundStyle(.gray)
+                    .foregroundColor(.gray)
                     .font(Font.system(size: 20, weight: .bold))
                     .onTapGesture {
                         dismiss()
@@ -77,11 +72,10 @@ extension EditQuestionView {
                     } else {
                         if isThisEditView {
                             vm.updateContent(MeCategoryID: meCategoryID, editContent: content)
-                            dismiss()
                         } else {
                             vm.addContent(MeCategoryID: meCategoryID, addContent: content)
-                            dismiss()
                         }
+                        dismiss()
                     }
                 } label: {
                     Text("완료")
@@ -93,46 +87,116 @@ extension EditQuestionView {
             Divider()
         }
     }
-    private func ContentEditView() -> some View {
-        VStack(alignment: .leading, spacing: .zero) {
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: .zero) {
-                    TextField("질문을 입력하세요.", text: $content.headLine)
-                        .tint(.black)
-                        .font(Font.system(size: 16, weight: .semibold))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .focused($isKeyBoardOn)
-                        .padding(.bottom, 10)
-                    SubLineListView()
-                    Spacer()
+    
+    @ViewBuilder
+    private func CategorySelectorView() -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack {
+                ForEach(vm.meCategoryModelList) { category in
+                    Text(category.title)
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 15)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(category.id == vm.selectedCategory.id ? Color.blue : Color.gray.opacity(0.2))
+                        )
+                        .foregroundColor(category.id == vm.selectedCategory.id ? .white : .black)
+                        .onTapGesture {
+                            vm.selectedCategory = category
+                        }
                 }
             }
+            .padding(.horizontal, 20)
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 25)
-        .frame(maxHeight: .infinity)
-        .background(.white)
     }
-    @ViewBuilder
-    private func SubLineListView() -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 0) {
-                Image(.arrow)
-                    .frame(width: 24, height: 24)
-                ForEach(content.subLines, id: \.id) { subLine in
-                    if let subLineIndex = content.subLines.firstIndex(where: { $0.id == subLine.id }) {
-                        TextField(
-                            "질문에 답을 해보세요.",
-                            text: Binding(
-                                get: { content.subLines[subLineIndex].text },
-                                set: { content.subLines[subLineIndex].text = $0 }
+    
+    private func ContentEditView() -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            TextField("질문을 입력하세요.", text: $content.headLine)
+                .font(Font.system(size: 18, weight: .semibold))
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .strokeBorder(Color.gray.opacity(0.5), lineWidth: 1)
+                )
+                .focused($isKeyBoardOn)
+            
+            ScrollView {
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(content.subLines.indices, id: \.self) { index in
+                        HStack {
+                            if content.subLines[index].listStyle == .checkbox {
+                                Image(systemName: "checkmark.square")
+                            } else if content.subLines[index].listStyle == .numbered {
+                                Text("\(index + 1).")
+                            } else if content.subLines[index].listStyle == .bulleted {
+                                Circle().frame(width: 8, height: 8)
+                            }
+                            
+                            TextField(
+                                "답변을 입력하세요.",
+                                text: Binding(
+                                    get: { content.subLines[index].text },
+                                    set: { content.subLines[index].text = $0 }
+                                )
                             )
-                        )
-                        .tint(.black)
-                        .font(Font.system(size: 14))
+                            .padding(.leading, CGFloat(content.subLines[index].indentLevel) * 10)
+                            .focused($isKeyBoardOn)
+                        }
                     }
                 }
             }
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                KeyboardToolbar()
+            }
+        }
+        .padding(.horizontal, 20)
+    }
+    
+    private func KeyboardToolbar() -> some View {
+        HStack {
+            Button(action: { tabIndent() }) {
+                Image(systemName: "arrow.right.to.line")
+            }
+            Button(action: { untabIndent() }) {
+                Image(systemName: "arrow.left.to.line")
+            }
+            Spacer()
+            Button(action: { toggleListStyle(.checkbox) }) {
+                Image(systemName: "checklist")
+            }
+            Button(action: { toggleListStyle(.numbered) }) {
+                Image(systemName: "list.number")
+            }
+            Button(action: { toggleListStyle(.bulleted) }) {
+                Image(systemName: "list.bullet")
+            }
+        }
+        .padding()
+        .background(Color(UIColor.systemGray6))
+    }
+    
+    private func tabIndent() {
+        if let selectedLine = content.subLines.last,
+           let index = content.subLines.firstIndex(where: { $0.id == selectedLine.id }) {
+            content.subLines[index].indentLevel += 1
+        }
+    }
+
+    private func untabIndent() {
+        if let selectedLine = content.subLines.last,
+           selectedLine.indentLevel > 0,
+           let index = content.subLines.firstIndex(where: { $0.id == selectedLine.id }) {
+            content.subLines[index].indentLevel -= 1
+        }
+    }
+
+    private func toggleListStyle(_ style: ListStyle) {
+        if let selectedLine = content.subLines.last,
+           let index = content.subLines.firstIndex(where: { $0.id == selectedLine.id }) {
+            content.subLines[index].listStyle = content.subLines[index].listStyle == style ? .none : style
         }
     }
 }
@@ -146,7 +210,7 @@ extension EditQuestionView {
                 profile: mockData_profile
             ),
             meCategoryID: firstCategory.id,
-            content: firstContent // 첫 번째 카테고리의 첫 번째 콘텐츠 사용
+            content: firstContent
         )
     } else {
         return Text("Mock 데이터가 비어있습니다.")

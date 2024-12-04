@@ -14,7 +14,7 @@ enum ListStyle: String, Codable {
     case bulleted
 }
 
-struct MeCategoryModel: Hashable, Codable {
+struct MeCategoryModel: Hashable, Codable, Identifiable {
     let id: UUID
     var title: String
     var contentList: [ContentModel]
@@ -26,7 +26,7 @@ struct ContentModel: Hashable, Identifiable, Codable {
     var subLines: [SubLineModel]
 }
 
-struct SubLineModel: Hashable, Codable {
+struct SubLineModel: Hashable, Codable, Identifiable{
     let id: UUID
     var text: String
     var indentLevel: Int // 들여쓰기 레벨
