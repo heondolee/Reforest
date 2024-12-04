@@ -264,9 +264,15 @@ extension MeView {
                 HStack(spacing: 0) {
                     Image(.arrow)
                         .frame(width: 24, height: 24)
-                    Text(content.subLine.text)
-                        .font(Font.system(size: 14))
-                        .lineLimit(2)
+                    if let firstSubLine = content.subLines.first {
+                        Text(firstSubLine.text)
+                            .font(Font.system(size: 14))
+                            .lineLimit(2)
+                    } else {
+                        Text("내용이 없습니다.")
+                            .font(Font.system(size: 14))
+                            .foregroundColor(.gray)
+                    }
                 }
             }
         }

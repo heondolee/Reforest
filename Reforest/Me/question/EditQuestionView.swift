@@ -27,7 +27,18 @@ struct EditQuestionView: View {
             self._content = State(initialValue: content)
             self.isThisEditView = true
         } else {
-            self._content = State(initialValue: ContentModel(id: UUID(), headLine: "", subLine: SubLineModel(id: UUID(), text: "")))
+            self._content = State(initialValue: ContentModel(
+                id: UUID(),
+                headLine: "",
+                subLines: [
+                    SubLineModel(
+                        id: UUID(),
+                        text: "",
+                        indentLevel: 0,
+                        listStyle: .none
+                    )
+                ]
+            ))
             self.isThisEditView = false
         }
     }
@@ -61,7 +72,7 @@ extension EditQuestionView {
                     }
                     .padding(.trailing, 30)
                 Button {
-                    if content.headLine.isEmpty || content.subLine.text.isEmpty {
+                    if content.headLine.isEmpty || content.subLines.allSatisfy({ $0.text.isEmpty }) {
                         isShowEmptyAlert = true
                     } else {
                         if isThisEditView {
@@ -108,14 +119,36 @@ extension EditQuestionView {
             HStack(spacing: 0) {
                 Image(.arrow)
                     .frame(width: 24, height: 24)
-                TextField("질문에 답을 해보세요.", text: $content.subLine.text)
-                    .tint(.black)
-                    .font(Font.system(size: 14))
+                ForEach(content.subLines, id: \.id) { subLine in
+                    if let subLineIndex = content.subLines.firstIndex(where: { $0.id == subLine.id }) {
+                        TextField(
+                            "질문에 답을 해보세요.",
+                            text: Binding(
+                                get: { content.subLines[subLineIndex].text },
+                                set: { content.subLines[subLineIndex].text = $0 }
+                            )
+                        )
+                        .tint(.black)
+                        .font(Font.system(size: 14))
+                    }
+                }
             }
         }
     }
 }
 
 #Preview {
-    EditQuestionView(vm: MeViewModel(meCategoryModelList: mockData_meCategoryModelList, profile: mockData_profile), meCategoryID: UUID(), content: ContentModel(id: UUID(), headLine: "나의 장점", subLine: SubLineModel(id: UUID(), text: "신중하고 남의 공감을 잘함")))
+    if let firstCategory = mockData_meCategoryModelList.first,
+       let firstContent = firstCategory.contentList.first {
+        return EditQuestionView(
+            vm: MeViewModel(
+                meCategoryModelList: mockData_meCategoryModelList,
+                profile: mockData_profile
+            ),
+            meCategoryID: firstCategory.id,
+            content: firstContent // 첫 번째 카테고리의 첫 번째 콘텐츠 사용
+        )
+    } else {
+        return Text("Mock 데이터가 비어있습니다.")
+    }
 }

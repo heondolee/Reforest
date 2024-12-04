@@ -45,14 +45,24 @@ class MeViewModel: ObservableObject {
             if category.id == MeCategoryID {
                 for (contentIndex, content) in category.contentList.enumerated() {
                     if content.id == editContent.id {
+                        // headLine 업데이트
                         self.meCategoryModelList[categoryIndex].contentList[contentIndex].headLine = editContent.headLine
-                        self.meCategoryModelList[categoryIndex].contentList[contentIndex].subLine.text = editContent.subLine.text
+
+                        // subLines 업데이트
+                        for (subLineIndex, subLine) in content.subLines.enumerated() {
+                            if let editSubLine = editContent.subLines.first(where: { $0.id == subLine.id }) {
+                                self.meCategoryModelList[categoryIndex].contentList[contentIndex].subLines[subLineIndex].text = editSubLine.text
+                                self.meCategoryModelList[categoryIndex].contentList[contentIndex].subLines[subLineIndex].indentLevel = editSubLine.indentLevel
+                                self.meCategoryModelList[categoryIndex].contentList[contentIndex].subLines[subLineIndex].listStyle = editSubLine.listStyle
+                            }
+                        }
                         return
                     }
                 }
             }
         }
     }
+
     
     func addContent(MeCategoryID: UUID, addContent: ContentModel) {
         for (categoryIndex, category) in meCategoryModelList.enumerated() {
