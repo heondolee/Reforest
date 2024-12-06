@@ -282,31 +282,52 @@ extension MeView {
         return AnyView(
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    // 리스트 스타일 렌더링
                     if subLine.listStyle == .checkbox {
-                        Image(systemName: "checkmark.square")
+                        Image(systemName: subLine.isChecked ? "checkmark.square.fill" : "square")
+                            .onTapGesture {
+                                toggleCheckBox(subLine)
+                            }
                     } else if subLine.listStyle == .numbered {
-                        Text("\(indentLevel + 1).") // 현재 들여쓰기 레벨에 기반
+                        Text("\(indentLevel + 1).")
                     } else if subLine.listStyle == .bulleted {
                         Circle().frame(width: 8, height: 8)
                     }
                     
-                    // SubLine 텍스트 렌더링
                     Text(subLine.text.isEmpty ? "내용이 없습니다." : subLine.text)
                         .font(Font.system(size: 14))
                         .foregroundColor(subLine.text.isEmpty ? .gray : .black)
                 }
-                .padding(.leading, CGFloat(indentLevel) * 20) // 들여쓰기 적용
+                .padding(.leading, CGFloat(indentLevel) * 20)
                 
                 // 하위 SubLine 렌더링
                 ForEach(subLine.subLines, id: \.id) { childSubLine in
-                    renderSubLine(childSubLine, indentLevel: indentLevel + 1) // 부모보다 한 단계 더 들여쓰기
+                    renderSubLine(childSubLine, indentLevel: indentLevel + 1)
                 }
             }
             .padding(.vertical, 4)
         )
     }
+    
+    private func toggleCheckBox(_ subLine: SubLineModel) {
+        guard subLine.listStyle == .checkbox else { return }
+        
+        if let categoryIndex = vm.meCategoryModelList.firstIndex(where: { category in
+            category.contentList.contains(where: { content in
+                content.subLines.contains(where: { $0.id == subLine.id })
+            })
+        }),
+           let contentIndex = vm.meCategoryModelList[categoryIndex].contentList.firstIndex(where: { content in
+               content.subLines.contains(where: { $0.id == subLine.id })
+           }),
+           let _ = vm.meCategoryModelList[categoryIndex].contentList[contentIndex].subLines.firstIndex(where: { $0.id == subLine.id }) {
 
+            vm.toggleCheckBox(
+                in: vm.meCategoryModelList[categoryIndex].contentList[contentIndex].id,
+                categoryID: vm.meCategoryModelList[categoryIndex].id,
+                subLineID: subLine.id
+            )
+        }
+    }
 }
 
 #Preview {

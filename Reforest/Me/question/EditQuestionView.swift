@@ -28,7 +28,8 @@ struct EditQuestionView: View {
                         id: UUID(),
                         text: "",
                         indentLevel: 0,
-                        listStyle: .none,
+                        listStyle: .checkbox, // 초기화할 때 리스트 스타일 설정
+                        isChecked: false, // 기본값은 체크되지 않음
                         subLines: [] // 계층 구조 초기화
                     )
                 ]
@@ -36,6 +37,7 @@ struct EditQuestionView: View {
             self.isThisEditView = false
         }
     }
+
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -148,7 +150,10 @@ extension EditQuestionView {
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
                     if subLine.wrappedValue.listStyle == .checkbox {
-                        Image(systemName: "checkmark.square")
+                        Image(systemName: subLine.wrappedValue.isChecked ? "checkmark.square.fill" : "square")
+                            .onTapGesture {
+                                toggleCheckBox(for: subLine)
+                            }
                     } else if subLine.wrappedValue.listStyle == .numbered {
                         Text("\(subLine.wrappedValue.indentLevel + 1).")
                     } else if subLine.wrappedValue.listStyle == .bulleted {
@@ -176,6 +181,25 @@ extension EditQuestionView {
             }
             .padding(.leading, CGFloat(subLine.wrappedValue.indentLevel) * 10)
         )
+    }
+    
+    private func toggleCheckBox(for subLine: Binding<SubLineModel>) {
+        guard subLine.wrappedValue.listStyle == .checkbox else { return }
+        subLine.wrappedValue.isChecked.toggle()
+        
+        // 업데이트를 ViewModel에 반영
+        if let categoryIndex = vm.meCategoryModelList.firstIndex(where: { category in
+            category.contentList.contains(where: { content in
+                content.subLines.contains(where: { $0.id == subLine.wrappedValue.id })
+            })
+        }),
+           let contentIndex = vm.meCategoryModelList[categoryIndex].contentList.firstIndex(where: { content in
+               content.subLines.contains(where: { $0.id == subLine.wrappedValue.id })
+           }),
+           let subLineIndex = vm.meCategoryModelList[categoryIndex].contentList[contentIndex].subLines.firstIndex(where: { $0.id == subLine.wrappedValue.id }) {
+            
+            vm.meCategoryModelList[categoryIndex].contentList[contentIndex].subLines[subLineIndex].isChecked.toggle()
+        }
     }
 
     private func KeyboardToolbar() -> some View {

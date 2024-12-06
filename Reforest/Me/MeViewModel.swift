@@ -1,10 +1,3 @@
-//
-//  MeViewModel.swift
-//  Reforest
-//
-//  Created by 헌도리 on 11/28/24.
-//
-
 import Foundation
 
 class MeViewModel: ObservableObject {
@@ -42,7 +35,6 @@ class MeViewModel: ObservableObject {
             return
         }
 
-        // 업데이트된 ContentModel 적용
         self.meCategoryModelList[categoryIndex].contentList[contentIndex] = editContent
     }
 
@@ -80,5 +72,15 @@ class MeViewModel: ObservableObject {
         }
 
         self.meCategoryModelList[categoryIndex].contentList[contentIndex].subLines.remove(at: subLineIndex)
+    }
+    
+    // 체크박스 상태 토글
+    func toggleCheckBox(in contentID: UUID, categoryID: UUID, subLineID: UUID) {
+        guard let categoryIndex = meCategoryModelList.firstIndex(where: { $0.id == categoryID }),
+              let contentIndex = meCategoryModelList[categoryIndex].contentList.firstIndex(where: { $0.id == contentID }),
+              let subLineIndex = meCategoryModelList[categoryIndex].contentList[contentIndex].subLines.firstIndex(where: { $0.id == subLineID }) else {
+            return
+        }
+        meCategoryModelList[categoryIndex].contentList[contentIndex].subLines[subLineIndex].isChecked.toggle()
     }
 }

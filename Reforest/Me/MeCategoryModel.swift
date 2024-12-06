@@ -31,5 +31,6 @@ struct SubLineModel: Hashable, Codable, Identifiable {
     var text: String
     var indentLevel: Int // 들여쓰기 레벨
     var listStyle: ListStyle // 리스트 스타일
+    var isChecked: Bool // 체크박스 체크 여부
     var subLines: [SubLineModel] // 하위 SubLineModel 리스트
 }
