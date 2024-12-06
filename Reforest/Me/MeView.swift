@@ -129,7 +129,6 @@ extension MeView {
                 .opacity(vm.profile.value.isEmpty ? 0.5 : 1.0) // 흐림 효과
         }
         .padding(.horizontal, 20)
-        .padding(.bottom, 15)
     }
     private func profileButtons() -> some View {
         HStack(spacing: .zero) {
