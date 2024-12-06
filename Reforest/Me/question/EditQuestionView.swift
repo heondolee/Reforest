@@ -92,22 +92,30 @@ extension EditQuestionView {
     @ViewBuilder
     private func CategorySelectorView() -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack {
+            HStack(spacing: .zero) {
                 ForEach(vm.meCategoryModelList) { category in
+                    let isSelected = category.id == vm.selectedCategory.id
                     Text(category.title)
-                        .padding(.vertical, 10)
-                        .padding(.horizontal, 15)
-                        .background(
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(category.id == vm.selectedCategory.id ? Color.blue : Color.gray.opacity(0.2))
-                        )
-                        .foregroundColor(category.id == vm.selectedCategory.id ? .white : .black)
+                        .font(Font.system(size: 17, weight: .bold))
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 5)
+                        .background(isSelected ? .white : .clear)
+                        .cornerRadius(100)
                         .onTapGesture {
                             vm.selectedCategory = category
                         }
                 }
             }
+            .padding(8)
+            .background(.gray.opacity(0.1))
+            .cornerRadius(25)
             .padding(.horizontal, 20)
+            .padding(.vertical, 20)
+            .shadow(
+                color: .black.opacity(0.1),
+                radius: CGFloat(8),
+                x: CGFloat(0), y: CGFloat(3)
+            )
         }
     }
     
@@ -219,3 +227,20 @@ extension EditQuestionView {
     }
 }
 
+#Preview {
+    // 첫 번째 카테고리에서 첫 번째 ContentModel 선택
+    if let firstCategory = mockData_meCategoryModelList.first,
+       let firstContent = firstCategory.contentList.first {
+        let mockViewModel = MeViewModel(
+            meCategoryModelList: mockData_meCategoryModelList,
+            profile: mockData_profile
+        )
+        return EditQuestionView(
+            vm: mockViewModel,
+            meCategoryID: firstCategory.id,
+            content: firstContent
+        )
+    } else {
+        return Text("Mock 데이터가 비어 있습니다.")
+    }
+}

@@ -116,9 +116,6 @@ extension MeView {
                         .background(.tertiary.opacity(0.12))
                         .clipShape(Circle())
                 }
-                Text(vm.profile.name.isEmpty ? "이름" : vm.profile.name)                    .font(Font.system(size: 15, weight: .bold))
-                    .padding(.top, 10)
-                    .opacity(vm.profile.name.isEmpty ? 0.5 : 1.0) // 흐림 효과
             }
             .padding(.trailing, 20)
             Text(vm.profile.value.isEmpty ? "가치관" : vm.profile.value)
@@ -133,6 +130,8 @@ extension MeView {
     }
     private func profileButtons() -> some View {
         HStack(spacing: .zero) {
+            Text(vm.profile.name.isEmpty ? "이름" : vm.profile.name)                    .font(Font.system(size: 15, weight: .bold))
+                .opacity(vm.profile.name.isEmpty ? 0.5 : 1.0) // 흐림 효과
             Spacer()
             strokeBox(title: "프로필 편집")
                 .onTapGesture {
@@ -150,7 +149,7 @@ extension MeView {
             }
         }
         .padding(.horizontal, 20)
-        .padding(.bottom, 20)
+        .padding(.bottom, 15)
     }
     private func meCategory() -> some View {
         HStack(spacing: .zero) {
@@ -186,6 +185,11 @@ extension MeView {
         .background(.grayA6.opacity(0.1))
         .cornerRadius(25)
         .padding(.horizontal, 20)
+        .shadow(
+            color: .black.opacity(0.1),
+            radius: CGFloat(8),
+            x: CGFloat(0), y: CGFloat(3)
+        )
     }
     
     @ViewBuilder

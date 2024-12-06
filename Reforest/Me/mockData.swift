@@ -111,11 +111,158 @@ let mockData_meCategoryModelList = [
                         ]
                     )
                 ]
+            ),
+            ContentModel(
+                id: UUID(),
+                headLine: "어려웠던 경험",
+                subLines: [
+                    SubLineModel(
+                        id: UUID(),
+                        text: "첫 직장에서 적응하기 힘들었던 시기",
+                        indentLevel: 0,
+                        listStyle: .none,
+                        subLines: [
+                            SubLineModel(
+                                id: UUID(),
+                                text: "팀워크 부족으로 스트레스가 많았음",
+                                indentLevel: 1,
+                                listStyle: .bulleted,
+                                subLines: []
+                            )
+                        ]
+                    )
+                ]
             )
         ]
     ),
-    MeCategoryModel(id: UUID(), title: "인생", contentList: []),
-    MeCategoryModel(id: UUID(), title: "취미", contentList: [])
+    MeCategoryModel(
+        id: UUID(),
+        title: "인생",
+        contentList: [
+            ContentModel(
+                id: UUID(),
+                headLine: "나의 인생 목표",
+                subLines: [
+                    SubLineModel(
+                        id: UUID(),
+                        text: "꾸준히 성장하는 사람이 되기",
+                        indentLevel: 0,
+                        listStyle: .none,
+                        subLines: []
+                    )
+                ]
+            )
+        ]
+    ),
+    MeCategoryModel(
+        id: UUID(),
+        title: "취미",
+        contentList: [
+            ContentModel(
+                id: UUID(),
+                headLine: "즐겨하는 취미",
+                subLines: [
+                    SubLineModel(
+                        id: UUID(),
+                        text: "독서 - 특히 자기계발서",
+                        indentLevel: 0,
+                        listStyle: .bulleted,
+                        subLines: []
+                    ),
+                    SubLineModel(
+                        id: UUID(),
+                        text: "달리기 - 주말마다 5km 달리기",
+                        indentLevel: 0,
+                        listStyle: .numbered,
+                        subLines: []
+                    )
+                ]
+            )
+        ]
+    ),
+    MeCategoryModel(
+        id: UUID(),
+        title: "관심사",
+        contentList: [
+            ContentModel(
+                id: UUID(),
+                headLine: "현재 관심 있는 주제",
+                subLines: [
+                    SubLineModel(
+                        id: UUID(),
+                        text: "AI와 머신러닝의 발전",
+                        indentLevel: 0,
+                        listStyle: .none,
+                        subLines: []
+                    ),
+                    SubLineModel(
+                        id: UUID(),
+                        text: "지속 가능한 에너지 개발",
+                        indentLevel: 0,
+                        listStyle: .bulleted,
+                        subLines: []
+                    )
+                ]
+            )
+        ]
+    ),
+    MeCategoryModel(
+        id: UUID(),
+        title: "관계",
+        contentList: [
+            ContentModel(
+                id: UUID(),
+                headLine: "가족과의 관계",
+                subLines: [
+                    SubLineModel(
+                        id: UUID(),
+                        text: "매주 부모님께 안부 전화 드리기",
+                        indentLevel: 0,
+                        listStyle: .none,
+                        subLines: []
+                    )
+                ]
+            )
+        ]
+    ),
+    MeCategoryModel(
+        id: UUID(),
+        title: "건강과 웰빙",
+        contentList: [
+            ContentModel(
+                id: UUID(),
+                headLine: "건강 관리 방법",
+                subLines: [
+                    SubLineModel(
+                        id: UUID(),
+                        text: "주 3회 헬스장 가기",
+                        indentLevel: 0,
+                        listStyle: .numbered,
+                        subLines: []
+                    )
+                ]
+            )
+        ]
+    ),
+    MeCategoryModel(
+        id: UUID(),
+        title: "업무와 커리어",
+        contentList: [
+            ContentModel(
+                id: UUID(),
+                headLine: "커리어 목표",
+                subLines: [
+                    SubLineModel(
+                        id: UUID(),
+                        text: "3년 내에 팀 리더로 성장하기",
+                        indentLevel: 0,
+                        listStyle: .none,
+                        subLines: []
+                    )
+                ]
+            )
+        ]
+    )
 ]
 
 let mockData_profile = ProfileModel(
