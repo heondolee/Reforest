@@ -28,7 +28,7 @@ struct EditQuestionView: View {
                         id: UUID(),
                         text: "",
                         indentLevel: 0,
-                        listStyle: .checkbox, // 초기화할 때 리스트 스타일 설정
+                        listStyle: .none, // 초기화할 때 리스트 스타일 설정
                         isChecked: false, // 기본값은 체크되지 않음
                         subLines: [] // 계층 구조 초기화
                     )
