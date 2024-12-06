@@ -125,7 +125,7 @@ extension EditQuestionView {
     private func ContentEditView() -> some View {
         VStack(alignment: .leading, spacing: 6) {
             TextField("질문을 입력하세요.", text: $content.headLine)
-                .font(Font.system(size: 20, weight: .heavy))
+                .font(Font.system(size: 16, weight: .heavy))
                 .focused($isKeyBoardOn)
                 .padding(.horizontal, 6)
             VStack(alignment: .leading, spacing: 8) {
@@ -148,7 +148,8 @@ extension EditQuestionView {
     private func renderSubLine(subLine: Binding<SubLineModel>) -> AnyView {
         return AnyView(
             VStack(alignment: .leading, spacing: 4) {
-                HStack {
+                HStack(alignment: .top) {
+                    // 들여쓰기 반영
                     if subLine.wrappedValue.listStyle == .checkbox {
                         Image(systemName: subLine.wrappedValue.isChecked ? "checkmark.square.fill" : "square")
                             .onTapGesture {
@@ -160,11 +161,13 @@ extension EditQuestionView {
                         Circle().frame(width: 8, height: 8)
                     }
                     
+                    // TextField에서 들여쓰기 반영
                     TextField(
                         "답변을 입력하세요.",
                         text: subLine.text
                     )
-                    .padding(.leading, CGFloat(subLine.wrappedValue.indentLevel) * 10)
+                    .font(Font.system(size: 14))
+                    .padding(.leading, CGFloat(subLine.wrappedValue.indentLevel) * 20) // 들여쓰기
                     .onChange(of: subLine.wrappedValue.text) { oldValue, newValue in
                         handleTextChange(for: subLine, newText: newValue)
                     }
@@ -179,11 +182,14 @@ extension EditQuestionView {
                             set: { subLine.wrappedValue.subLines[childIndex] = $0 }
                         )
                     )
+                    .padding(.leading, CGFloat(subLine.wrappedValue.indentLevel + 1) * 10) // 추가적인 들여쓰기
                 }
             }
-            .padding(.leading, CGFloat(subLine.wrappedValue.indentLevel) * 10)
+            .padding(.leading, CGFloat(subLine.wrappedValue.indentLevel) * 10) // 전체 들여쓰기
         )
     }
+
+    
     
     private func handleTextChange(for subLine: Binding<SubLineModel>, newText: String) {
         if newText.isEmpty {

@@ -195,32 +195,32 @@ extension MeView {
     }
     
     @ViewBuilder
-        private func meCategoryContentList() -> some View {
-            VStack(spacing: 0) {
-                if let preSelectedMeCategory = selectedMeCategory,
-                   let selectedMeCategory = vm.getUpdatedMeCategory(preSelectedMeCategory),
-                   !selectedMeCategory.contentList.isEmpty {
-                    ScrollView(showsIndicators: false) {
-                        ForEach(selectedMeCategory.contentList, id: \.self) { content in
-                            meCategoryContentBox(meCategory: selectedMeCategory, content)
-                        }
+    private func meCategoryContentList() -> some View {
+        VStack(spacing: 0) {
+            if let preSelectedMeCategory = selectedMeCategory,
+               let selectedMeCategory = vm.getUpdatedMeCategory(preSelectedMeCategory),
+               !selectedMeCategory.contentList.isEmpty {
+                ScrollView(showsIndicators: false) {
+                    ForEach(selectedMeCategory.contentList, id: \.self) { content in
+                        meCategoryContentBox(meCategory: selectedMeCategory, content)
                     }
-                } else {
-                    VStack(spacing: 0) {
-                        Spacer()
-                        Text("나에 대해 작성해보세요")
-                            .padding(.horizontal, 20)
-                            .opacity(0.5) // 흐림 효과
-                        Spacer()
-                        Spacer()
-                    }
+                }
+            } else {
+                VStack(spacing: 0) {
+                    Spacer()
+                    Text("나에 대해 작성해보세요")
+                        .padding(.horizontal, 20)
+                        .opacity(0.5) // 흐림 효과
+                    Spacer()
+                    Spacer()
                 }
             }
         }
+    }
 }
 
 extension MeView {
-    private func strokeBox(image: ImageResource? = nil, title: String) -> some View {
+    private func strokeBox(image: ImageResource? = nil, title: String) -> some View { // 프로필 이미지 박스
         HStack(spacing: 0) {
             if let image {
                 Image(image)
