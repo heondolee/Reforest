@@ -166,6 +166,9 @@ extension EditQuestionView {
                     )
                     .padding(.leading, CGFloat(subLine.wrappedValue.indentLevel) * 10)
                     .focused($isKeyBoardOn)
+                    .onChange(of: subLine.wrappedValue.text) { oldValue, newValue in
+                        handleTextChange(for: subLine, newText: newValue)
+                    }
                 }
                 .padding(.vertical, 4)
                 
@@ -181,6 +184,12 @@ extension EditQuestionView {
             }
             .padding(.leading, CGFloat(subLine.wrappedValue.indentLevel) * 10)
         )
+    }
+    private func handleTextChange(for subLine: Binding<SubLineModel>, newText: String) {
+        if newText.isEmpty {
+            subLine.wrappedValue.listStyle = .none
+            subLine.wrappedValue.isChecked = false // 체크박스 상태 초기화
+        }
     }
     
     private func toggleCheckBox(for subLine: Binding<SubLineModel>) {
