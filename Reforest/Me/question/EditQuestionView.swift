@@ -60,7 +60,7 @@ extension EditQuestionView {
     private func NavigationHeaderView() -> some View {
         VStack(spacing: 0) {
             HStack(spacing: 0) {
-                Text("나 - 질문 수정하기")
+                Text(isThisEditView ? "나 - 수정하기" : "나 - 추가하기")
                     .font(Font.system(size: 22, weight: .bold))
                 Spacer()
                 Text("취소")
