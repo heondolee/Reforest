@@ -42,6 +42,7 @@ struct EditQuestionView: View {
             NavigationHeaderView()
             CategorySelectorView()
             ContentEditView()
+            Spacer()
         }
         .onAppear {
             isKeyBoardOn = true
@@ -120,32 +121,28 @@ extension EditQuestionView {
     }
     
     private func ContentEditView() -> some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 6) {
             TextField("질문을 입력하세요.", text: $content.headLine)
-                .font(Font.system(size: 18, weight: .semibold))
-                .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .strokeBorder(Color.gray.opacity(0.5), lineWidth: 1)
-                )
+                .font(Font.system(size: 20, weight: .heavy))
                 .focused($isKeyBoardOn)
-            
-            ScrollView {
-                VStack(alignment: .leading, spacing: 8) {
-                    ForEach(content.subLines.indices, id: \.self) { index in
-                        renderSubLine(subLine: $content.subLines[index])
-                    }
+                .padding(.horizontal, 6)
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(content.subLines.indices, id: \.self) { index in
+                    renderSubLine(subLine: $content.subLines[index])
                 }
             }
+            .padding(.horizontal, 10)
+
         }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 KeyboardToolbar()
             }
         }
+        .whiteBoxWithShadow(lineSpacing: 8)
         .padding(.horizontal, 20)
     }
-    
+
     private func renderSubLine(subLine: Binding<SubLineModel>) -> AnyView {
         return AnyView(
             VStack(alignment: .leading, spacing: 4) {
