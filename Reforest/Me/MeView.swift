@@ -116,6 +116,10 @@ extension MeView {
                         .background(.tertiary.opacity(0.12))
                         .clipShape(Circle())
                 }
+                Text(vm.profile.name.isEmpty ? "이름" : vm.profile.name)
+                    .font(Font.system(size: 15, weight: .bold))
+                    .opacity(vm.profile.name.isEmpty ? 0.5 : 1.0) // 흐림 효과
+                    .padding(.top, 15)
             }
             .padding(.trailing, 20)
             Text(vm.profile.value.isEmpty ? "가치관" : vm.profile.value)
@@ -130,8 +134,6 @@ extension MeView {
     }
     private func profileButtons() -> some View {
         HStack(spacing: .zero) {
-            Text(vm.profile.name.isEmpty ? "이름" : vm.profile.name)                    .font(Font.system(size: 15, weight: .bold))
-                .opacity(vm.profile.name.isEmpty ? 0.5 : 1.0) // 흐림 효과
             Spacer()
             strokeBox(title: "프로필 편집")
                 .onTapGesture {
