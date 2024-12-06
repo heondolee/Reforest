@@ -26,9 +26,10 @@ struct ContentModel: Hashable, Identifiable, Codable {
     var subLines: [SubLineModel]
 }
 
-struct SubLineModel: Hashable, Codable, Identifiable{
+struct SubLineModel: Hashable, Codable, Identifiable {
     let id: UUID
     var text: String
     var indentLevel: Int // 들여쓰기 레벨
     var listStyle: ListStyle // 리스트 스타일
+    var subLines: [SubLineModel] // 하위 SubLineModel 리스트
 }

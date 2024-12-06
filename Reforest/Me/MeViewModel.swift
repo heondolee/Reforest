@@ -2,7 +2,7 @@
 //  MeViewModel.swift
 //  Reforest
 //
-//  Created by 가은리 on 11/28/24.
+//  Created by 헌도리 on 11/28/24.
 //
 
 import Foundation
@@ -42,21 +42,43 @@ class MeViewModel: ObservableObject {
             return
         }
 
-        // headLine 업데이트
-        self.meCategoryModelList[categoryIndex].contentList[contentIndex].headLine = editContent.headLine
-
-        // subLines 업데이트
-        let updatedSubLines = editContent.subLines.reduce(into: [:]) { $0[$1.id] = $1 }
-        for (index, subLine) in self.meCategoryModelList[categoryIndex].contentList[contentIndex].subLines.enumerated() {
-            if let updatedSubLine = updatedSubLines[subLine.id] {
-                self.meCategoryModelList[categoryIndex].contentList[contentIndex].subLines[index] = updatedSubLine
-            }
-        }
+        // 업데이트된 ContentModel 적용
+        self.meCategoryModelList[categoryIndex].contentList[contentIndex] = editContent
     }
 
     func addContent(MeCategoryID: UUID, addContent: ContentModel) {
         if let categoryIndex = meCategoryModelList.firstIndex(where: { $0.id == MeCategoryID }) {
             self.meCategoryModelList[categoryIndex].contentList.append(addContent)
         }
+    }
+    
+    // SubLineModel 관련 메서드 추가
+    func addSubLine(to contentID: UUID, in categoryID: UUID, subLine: SubLineModel) {
+        guard let categoryIndex = meCategoryModelList.firstIndex(where: { $0.id == categoryID }),
+              let contentIndex = meCategoryModelList[categoryIndex].contentList.firstIndex(where: { $0.id == contentID }) else {
+            return
+        }
+
+        self.meCategoryModelList[categoryIndex].contentList[contentIndex].subLines.append(subLine)
+    }
+    
+    func updateSubLine(in contentID: UUID, categoryID: UUID, subLine: SubLineModel) {
+        guard let categoryIndex = meCategoryModelList.firstIndex(where: { $0.id == categoryID }),
+              let contentIndex = meCategoryModelList[categoryIndex].contentList.firstIndex(where: { $0.id == contentID }),
+              let subLineIndex = meCategoryModelList[categoryIndex].contentList[contentIndex].subLines.firstIndex(where: { $0.id == subLine.id }) else {
+            return
+        }
+
+        self.meCategoryModelList[categoryIndex].contentList[contentIndex].subLines[subLineIndex] = subLine
+    }
+
+    func removeSubLine(from contentID: UUID, in categoryID: UUID, subLineID: UUID) {
+        guard let categoryIndex = meCategoryModelList.firstIndex(where: { $0.id == categoryID }),
+              let contentIndex = meCategoryModelList[categoryIndex].contentList.firstIndex(where: { $0.id == contentID }),
+              let subLineIndex = meCategoryModelList[categoryIndex].contentList[contentIndex].subLines.firstIndex(where: { $0.id == subLineID }) else {
+            return
+        }
+
+        self.meCategoryModelList[categoryIndex].contentList[contentIndex].subLines.remove(at: subLineIndex)
     }
 }

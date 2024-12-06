@@ -28,7 +28,8 @@ struct EditQuestionView: View {
                         id: UUID(),
                         text: "",
                         indentLevel: 0,
-                        listStyle: .none
+                        listStyle: .none,
+                        subLines: [] // 계층 구조 초기화
                     )
                 ]
             ))
@@ -124,25 +125,7 @@ extension EditQuestionView {
             ScrollView {
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(content.subLines.indices, id: \.self) { index in
-                        HStack {
-                            if content.subLines[index].listStyle == .checkbox {
-                                Image(systemName: "checkmark.square")
-                            } else if content.subLines[index].listStyle == .numbered {
-                                Text("\(index + 1).")
-                            } else if content.subLines[index].listStyle == .bulleted {
-                                Circle().frame(width: 8, height: 8)
-                            }
-                            
-                            TextField(
-                                "답변을 입력하세요.",
-                                text: Binding(
-                                    get: { content.subLines[index].text },
-                                    set: { content.subLines[index].text = $0 }
-                                )
-                            )
-                            .padding(.leading, CGFloat(content.subLines[index].indentLevel) * 10)
-                            .focused($isKeyBoardOn)
-                        }
+                        renderSubLine(subLine: $content.subLines[index])
                     }
                 }
             }
@@ -155,6 +138,41 @@ extension EditQuestionView {
         .padding(.horizontal, 20)
     }
     
+    private func renderSubLine(subLine: Binding<SubLineModel>) -> AnyView {
+        return AnyView(
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    if subLine.wrappedValue.listStyle == .checkbox {
+                        Image(systemName: "checkmark.square")
+                    } else if subLine.wrappedValue.listStyle == .numbered {
+                        Text("\(subLine.wrappedValue.indentLevel + 1).")
+                    } else if subLine.wrappedValue.listStyle == .bulleted {
+                        Circle().frame(width: 8, height: 8)
+                    }
+                    
+                    TextField(
+                        "답변을 입력하세요.",
+                        text: subLine.text
+                    )
+                    .padding(.leading, CGFloat(subLine.wrappedValue.indentLevel) * 10)
+                    .focused($isKeyBoardOn)
+                }
+                .padding(.vertical, 4)
+                
+                // 하위 SubLine 렌더링
+                ForEach(subLine.wrappedValue.subLines.indices, id: \.self) { childIndex in
+                    renderSubLine(
+                        subLine: Binding(
+                            get: { subLine.wrappedValue.subLines[childIndex] },
+                            set: { subLine.wrappedValue.subLines[childIndex] = $0 }
+                        )
+                    )
+                }
+            }
+            .padding(.leading, CGFloat(subLine.wrappedValue.indentLevel) * 10)
+        )
+    }
+
     private func KeyboardToolbar() -> some View {
         HStack {
             Button(action: { tabIndent() }) {
@@ -201,18 +219,3 @@ extension EditQuestionView {
     }
 }
 
-#Preview {
-    if let firstCategory = mockData_meCategoryModelList.first,
-       let firstContent = firstCategory.contentList.first {
-        return EditQuestionView(
-            vm: MeViewModel(
-                meCategoryModelList: mockData_meCategoryModelList,
-                profile: mockData_profile
-            ),
-            meCategoryID: firstCategory.id,
-            content: firstContent
-        )
-    } else {
-        return Text("Mock 데이터가 비어있습니다.")
-    }
-}

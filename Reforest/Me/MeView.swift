@@ -129,6 +129,7 @@ extension MeView {
                 .opacity(vm.profile.value.isEmpty ? 0.5 : 1.0) // 흐림 효과
         }
         .padding(.horizontal, 20)
+        .padding(.bottom, 15)
     }
     private func profileButtons() -> some View {
         HStack(spacing: .zero) {
@@ -186,29 +187,30 @@ extension MeView {
         .cornerRadius(25)
         .padding(.horizontal, 20)
     }
+    
     @ViewBuilder
-    private func meCategoryContentList() -> some View {
-        VStack(spacing: 0) {
-            if let preSelectedMeCategory = selectedMeCategory,
-               let selectedMeCategory = vm.getUpdatedMeCategory(preSelectedMeCategory),
-               !selectedMeCategory.contentList.isEmpty {
-                ScrollView(showsIndicators: false) {
-                    ForEach(selectedMeCategory.contentList, id: \.self) { content in
-                        meCategoryContentBox(meCategory: selectedMeCategory, content)
+        private func meCategoryContentList() -> some View {
+            VStack(spacing: 0) {
+                if let preSelectedMeCategory = selectedMeCategory,
+                   let selectedMeCategory = vm.getUpdatedMeCategory(preSelectedMeCategory),
+                   !selectedMeCategory.contentList.isEmpty {
+                    ScrollView(showsIndicators: false) {
+                        ForEach(selectedMeCategory.contentList, id: \.self) { content in
+                            meCategoryContentBox(meCategory: selectedMeCategory, content)
+                        }
                     }
-                }
-            } else {
-                VStack(spacing: 0) {
-                    Spacer()
-                    Text("나에 대해 작성해보세요")
-                        .padding(.horizontal, 20)
-                        .opacity(0.5) // 흐림 효과
-                    Spacer()
-                    Spacer()
+                } else {
+                    VStack(spacing: 0) {
+                        Spacer()
+                        Text("나에 대해 작성해보세요")
+                            .padding(.horizontal, 20)
+                            .opacity(0.5) // 흐림 효과
+                        Spacer()
+                        Spacer()
+                    }
                 }
             }
         }
-    }
 }
 
 extension MeView {
@@ -232,6 +234,7 @@ extension MeView {
         .background(.gray)
         .cornerRadius(9)
     }
+    
     private func meCategoryContentBox(meCategory: MeCategoryModel, _ content: ContentModel) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 0) {
@@ -259,19 +262,10 @@ extension MeView {
                 }
             }
             .padding(.bottom, 8)
-            VStack(spacing: 5) {
-                HStack(spacing: 0) {
-                    Image(.arrow)
-                        .frame(width: 24, height: 24)
-                    if let firstSubLine = content.subLines.first {
-                        Text(firstSubLine.text)
-                            .font(Font.system(size: 14))
-                            .lineLimit(2)
-                    } else {
-                        Text("내용이 없습니다.")
-                            .font(Font.system(size: 14))
-                            .foregroundColor(.gray)
-                    }
+            
+            VStack(alignment: .leading, spacing: 5) {
+                ForEach(content.subLines, id: \.id) { subLine in
+                    renderSubLine(subLine, indentLevel: subLine.indentLevel)
                 }
             }
         }
@@ -279,6 +273,36 @@ extension MeView {
         .padding(.horizontal, 20)
         .padding(.top, 10)
     }
+    
+    private func renderSubLine(_ subLine: SubLineModel, indentLevel: Int) -> AnyView {
+        return AnyView(
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    // 리스트 스타일 렌더링
+                    if subLine.listStyle == .checkbox {
+                        Image(systemName: "checkmark.square")
+                    } else if subLine.listStyle == .numbered {
+                        Text("\(indentLevel + 1).") // 현재 들여쓰기 레벨에 기반
+                    } else if subLine.listStyle == .bulleted {
+                        Circle().frame(width: 8, height: 8)
+                    }
+                    
+                    // SubLine 텍스트 렌더링
+                    Text(subLine.text.isEmpty ? "내용이 없습니다." : subLine.text)
+                        .font(Font.system(size: 14))
+                        .foregroundColor(subLine.text.isEmpty ? .gray : .black)
+                }
+                .padding(.leading, CGFloat(indentLevel) * 20) // 들여쓰기 적용
+                
+                // 하위 SubLine 렌더링
+                ForEach(subLine.subLines, id: \.id) { childSubLine in
+                    renderSubLine(childSubLine, indentLevel: indentLevel + 1) // 부모보다 한 단계 더 들여쓰기
+                }
+            }
+            .padding(.vertical, 4)
+        )
+    }
+
 }
 
 #Preview {
