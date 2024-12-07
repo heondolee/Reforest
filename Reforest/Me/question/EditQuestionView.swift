@@ -145,35 +145,39 @@ extension EditQuestionView {
         .padding(.horizontal, 20)
     }
 
+    //subLine: SubLineModel의 바인딩입니다. 바인딩을 사용하면 값이 변경될 때 뷰가 자동으로 업데이트됩니다.
     private func renderSubLine(subLine: Binding<SubLineModel>) -> AnyView {
         return AnyView(
             VStack(alignment: .leading, spacing: 4) {
                 HStack(alignment: .top) {
-                    // 들여쓰기 반영
-                    if subLine.wrappedValue.listStyle == .checkbox {
-                        Image(systemName: subLine.wrappedValue.isChecked ? "checkmark.square.fill" : "square")
-                            .onTapGesture {
-                                toggleCheckBox(for: subLine)
-                            }
-                    } else if subLine.wrappedValue.listStyle == .numbered {
-                        Text("\(subLine.wrappedValue.indentLevel + 1).")
-                    } else if subLine.wrappedValue.listStyle == .bulleted {
-                        Circle().frame(width: 8, height: 8)
+                    // 들여쓰기 적용된 리스트 스타일 아이콘
+                    HStack {
+                        if subLine.wrappedValue.listStyle == .checkbox {
+                            Image(systemName: subLine.wrappedValue.isChecked ? "checkmark.square.fill" : "square")
+                                .onTapGesture {
+                                    toggleCheckBox(for: subLine)
+                                }
+                        } else if subLine.wrappedValue.listStyle == .numbered {
+                            Text("\(subLine.wrappedValue.indentLevel + 1).")
+                        } else if subLine.wrappedValue.listStyle == .bulleted {
+                            Circle().frame(width: 8, height: 8)
+                        }
                     }
-                    
-                    // TextField에서 들여쓰기 반영
+                    .padding(.leading, CGFloat(subLine.wrappedValue.indentLevel) * 20) // 리스트 스타일 아이콘 들여쓰기
+
+                    // 텍스트 필드에 들여쓰기 적용
                     TextField(
                         "답변을 입력하세요.",
                         text: subLine.text
                     )
                     .font(Font.system(size: 14))
-                    .padding(.leading, CGFloat(subLine.wrappedValue.indentLevel) * 20) // 들여쓰기
+                    .padding(.leading, 4) // 아이콘과 텍스트 사이의 간격
                     .onChange(of: subLine.wrappedValue.text) { oldValue, newValue in
                         handleTextChange(for: subLine, newText: newValue)
                     }
                 }
                 .padding(.vertical, 4)
-                
+
                 // 하위 SubLine 렌더링
                 ForEach(subLine.wrappedValue.subLines.indices, id: \.self) { childIndex in
                     renderSubLine(
@@ -182,10 +186,9 @@ extension EditQuestionView {
                             set: { subLine.wrappedValue.subLines[childIndex] = $0 }
                         )
                     )
-                    .padding(.leading, CGFloat(subLine.wrappedValue.indentLevel + 1) * 10) // 추가적인 들여쓰기
+                    .padding(.leading, CGFloat(subLine.wrappedValue.indentLevel + 1) * 20) // 추가적인 들여쓰기
                 }
             }
-            .padding(.leading, CGFloat(subLine.wrappedValue.indentLevel) * 10) // 전체 들여쓰기
         )
     }
 
