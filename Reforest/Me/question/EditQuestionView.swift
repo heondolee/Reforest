@@ -170,7 +170,7 @@ extension EditQuestionView {
                         "답변을 입력하세요.",
                         text: subLine.text, axis: .vertical
                     )
-
+                    .focused($isKeyBoardOn) // FocusState 바인딩 추가
                     .font(Font.system(size: 14))
                     .padding(.leading, 4) // 아이콘과 텍스트 사이의 간격
                     .onChange(of: subLine.wrappedValue.text) { oldValue, newValue in
@@ -250,6 +250,13 @@ extension EditQuestionView {
             }
             Button(action: { toggleListStyle(.bulleted) }) {
                 Image(systemName: "list.bullet")
+            }
+//            Button(action: { insertNewline() }) {
+//                Image(systemName: "arrow.turn.down.left")
+//                    .font(.title2)
+//            }
+            Button(action: { isKeyBoardOn = false }) {
+                Image(systemName: "keyboard.chevron.compact.down")
             }
         }
         .padding()
