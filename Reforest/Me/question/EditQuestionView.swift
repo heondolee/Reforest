@@ -10,6 +10,8 @@ struct EditQuestionView: View {
     
     @FocusState private var isKeyBoardOn: Bool
     
+    @FocusState private var focusedIndex: Int?
+    
     let isThisEditView: Bool
     let meCategoryID: UUID
     
@@ -157,8 +159,9 @@ extension EditQuestionView {
                                 .onTapGesture {
                                     toggleCheckBox(for: subLine)
                                 }
+                            Text("\(subLine.wrappedValue.indentLevel)체크")
                         } else if subLine.wrappedValue.listStyle == .numbered {
-                            Text("\(subLine.wrappedValue.indentLevel + 1).")
+                            Text("\(subLine.wrappedValue.indentLevel)숫자")
                         } else if subLine.wrappedValue.listStyle == .bulleted {
                             Circle().frame(width: 8, height: 8)
                         }
@@ -168,13 +171,16 @@ extension EditQuestionView {
                     // 텍스트 필드에 들여쓰기 적용
                     TextField(
                         "답변을 입력하세요.",
-                        text: subLine.text, axis: .vertical
+                        text: subLine.text
                     )
                     .focused($isKeyBoardOn) // FocusState 바인딩 추가
                     .font(Font.system(size: 14))
                     .padding(.leading, 4) // 아이콘과 텍스트 사이의 간격
                     .onChange(of: subLine.wrappedValue.text) { oldValue, newValue in
                         handleTextChange(for: subLine, newText: newValue)
+                    }
+                    .onSubmit {
+                        addNewSubLine(after: subLine)
                     }
                 }
                 .padding(.vertical, 4)
@@ -187,7 +193,7 @@ extension EditQuestionView {
                             set: { subLine.wrappedValue.subLines[childIndex] = $0 }
                         )
                     )
-                    .padding(.leading, CGFloat(subLine.wrappedValue.indentLevel + 1) * 20) // 추가적인 들여쓰기
+//                    .padding(.leading, CGFloat(subLine.wrappedValue.indentLevel + 1) * 20) // 추가적인 들여쓰기
                 }
             }
         )
@@ -207,7 +213,7 @@ extension EditQuestionView {
             id: UUID(),
             text: "",
             indentLevel: subLine.wrappedValue.indentLevel,
-            listStyle: .none,
+            listStyle: subLine.wrappedValue.listStyle,
             isChecked: false,
             subLines: []
         )
@@ -251,10 +257,6 @@ extension EditQuestionView {
             Button(action: { toggleListStyle(.bulleted) }) {
                 Image(systemName: "list.bullet")
             }
-//            Button(action: { insertNewline() }) {
-//                Image(systemName: "arrow.turn.down.left")
-//                    .font(.title2)
-//            }
             Button(action: { isKeyBoardOn = false }) {
                 Image(systemName: "keyboard.chevron.compact.down")
             }
