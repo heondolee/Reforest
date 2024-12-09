@@ -138,19 +138,34 @@ struct MarkdownEditorView: UIViewRepresentable {
                 textView.becomeFirstResponder()
             }
 
+            // 탭한 위치에서 라인 텍스트와 그 범위를 가져옴
             if let position = textView.closestPosition(to: location),
             let range = textView.tokenizer.rangeEnclosingPosition(position, with: .line, inDirection: UITextDirection(rawValue: 0)),
-            var lineText = textView.text(in: range) {
+            let lineText = textView.text(in: range) {
 
-                // 정규식으로 체크박스 패턴 확인 (들여쓰기와 공백을 무시)
+                let nsLineText = lineText as NSString
                 let checkboxPattern = #"^\s*(☐ |☑ )"#
-                let regex = try? NSRegularExpression(pattern: checkboxPattern)
 
-                if let _ = regex?.firstMatch(in: lineText, options: [], range: NSRange(lineText.startIndex..., in: lineText)) {
-                    toggleCheckbox(in: textView, at: range, with: lineText)
+                if let regex = try? NSRegularExpression(pattern: checkboxPattern),
+                let match = regex.firstMatch(in: lineText, options: [], range: NSRange(location: 0, length: nsLineText.length)) {
+
+                    let checkboxRange = match.range(at: 1) // 체크박스 기호 범위
+
+                    // 라인의 시작점으로부터 체크박스의 시작점을 계산
+                    let lineStartOffset = textView.offset(from: textView.beginningOfDocument, to: range.start)
+                    let checkboxStartOffset = lineStartOffset + checkboxRange.location
+                    let checkboxEndOffset = checkboxStartOffset + checkboxRange.length
+
+                    let tapOffset = textView.offset(from: textView.beginningOfDocument, to: position)
+
+                    // 탭 위치가 체크박스 범위 내에 있는지 확인
+                    if tapOffset >= checkboxStartOffset && tapOffset <= checkboxEndOffset {
+                        toggleCheckbox(in: textView, at: range, with: lineText)
+                    }
                 }
             }
         }
+
 
 func toggleCheckbox(in textView: UITextView, at range: UITextRange, with lineText: String) {
     let updatedLine: String
