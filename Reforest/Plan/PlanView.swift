@@ -42,45 +42,44 @@ struct MarkdownEditorView: UIViewRepresentable {
             self.contentID = contentID
         }
 
-func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
-    if text == "\n" {
-        let nsText = textView.text as NSString
-        let currentLineRange = nsText.lineRange(for: range)
-        let currentLine = nsText.substring(with: currentLineRange)
+        func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+            if text == "\n" {
+                let nsText = textView.text as NSString
+                let currentLineRange = nsText.lineRange(for: range)
+                let currentLine = nsText.substring(with: currentLineRange)
 
-        let indentLevel = currentLine.prefix(while: { $0 == "\t" }).count
-        let lines = textView.text.components(separatedBy: "\n")
-        let currentIndex = lines.firstIndex(of: currentLine) ?? 0
+                let indentLevel = currentLine.prefix(while: { $0 == "\t" }).count
+                let lines = textView.text.components(separatedBy: "\n")
+                let currentIndex = lines.firstIndex(of: currentLine) ?? 0
 
-        var newPrefix: String = ""
-        let listStylePattern = #"^\s*(• |(\d+)\.|☐ |☑ )"#
-        let regex = try? NSRegularExpression(pattern: listStylePattern)
-        
-        if let match = regex?.firstMatch(in: currentLine, range: NSRange(currentLine.startIndex..., in: currentLine)) {
-            let matchedPrefix = (currentLine as NSString).substring(with: match.range).trimmingCharacters(in: .whitespaces)
+                var newPrefix: String = ""
+                let listStylePattern = #"^\s*(• |(\d+)\.|☐ |☑ )"#
+                let regex = try? NSRegularExpression(pattern: listStylePattern)
+                
+                if let match = regex?.firstMatch(in: currentLine, range: NSRange(currentLine.startIndex..., in: currentLine)) {
+                    let matchedPrefix = (currentLine as NSString).substring(with: match.range).trimmingCharacters(in: .whitespaces)
 
-            if let numberMatch = match.range(at: 2).location != NSNotFound ? Int((currentLine as NSString).substring(with: match.range(at: 2))) : nil {
-                newPrefix = "\(numberMatch + 1). "
-            } else if matchedPrefix == "☐" || matchedPrefix == "☑" {
-                newPrefix = "☐ "
-            } else {
-                newPrefix = matchedPrefix + " "
+                    if let numberMatch = match.range(at: 2).location != NSNotFound ? Int((currentLine as NSString).substring(with: match.range(at: 2))) : nil {
+                        newPrefix = "\(numberMatch + 1). "
+                    } else if matchedPrefix == "☐" || matchedPrefix == "☑" {
+                        newPrefix = "☐ "
+                    } else {
+                        newPrefix = matchedPrefix + " "
+                    }
+                }
+
+                let newLine = "\n" + String(repeating: "\t", count: indentLevel) + newPrefix
+
+                if let selectedTextRange = textView.selectedTextRange {
+                    textView.replace(selectedTextRange, withText: newLine)
+                    if let newPosition = textView.position(from: selectedTextRange.start, offset: newLine.count) {
+                        textView.selectedTextRange = textView.textRange(from: newPosition, to: newPosition)
+                    }
+                }
+                return false
             }
+            return true
         }
-
-        let newLine = "\n" + String(repeating: "\t", count: indentLevel) + newPrefix
-
-        if let selectedTextRange = textView.selectedTextRange {
-            textView.replace(selectedTextRange, withText: newLine)
-            if let newPosition = textView.position(from: selectedTextRange.start, offset: newLine.count) {
-                textView.selectedTextRange = textView.textRange(from: newPosition, to: newPosition)
-            }
-        }
-        return false
-    }
-    return true
-}
-
 
         func determineListStyle(from prefix: String) -> ListStyle {
             let trimmedPrefix = prefix.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -204,47 +203,53 @@ func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replace
         }
 
         func insertListItem(style: ListStyle, prefix: String) {
-            guard let textView = findFirstResponder(),
-                let selectedRange = textView.selectedTextRange,
-                let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
-                let lineText = textView.text(in: lineRange) else { return }
+    guard let textView = findFirstResponder(),
+          let selectedRange = textView.selectedTextRange,
+          let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
+          let lineText = textView.text(in: lineRange) else { return }
 
-            let indentLevel = lineText.prefix(while: { $0 == "\t" }).count
-            let lines = textView.text.components(separatedBy: "\n")
-            let currentIndex = lines.firstIndex(of: lineText) ?? 0
+    let indentLevel = lineText.prefix(while: { $0 == "\t" }).count
+    let lines = textView.text.components(separatedBy: "\n")
+    let currentIndex = lines.firstIndex(of: lineText) ?? 0
 
-            var number = 1
+    var number = 1
 
-            // 이전 라인들 중에서 동일한 indentLevel의 마지막 숫자 찾기
-            for i in (0..<currentIndex).reversed() {
-                let previousLine = lines[i]
-                let previousIndentLevel = previousLine.prefix(while: { $0 == "\t" }).count
+    // 이전 라인들 중에서 동일한 indentLevel의 마지막 숫자 찾기
+    for i in (0..<currentIndex).reversed() {
+        let previousLine = lines[i]
+        let previousIndentLevel = previousLine.prefix(while: { $0 == "\t" }).count
 
-                if previousIndentLevel == indentLevel {
-                    let numberPattern = #"^\s*\d+\."#
-                    if let match = previousLine.range(of: numberPattern, options: .regularExpression) {
-                        let matchedNumber = previousLine[match].trimmingCharacters(in: .whitespaces).dropLast()
-                        if let previousNumber = Int(matchedNumber) {
-                            number = previousNumber + 1
-                        }
-                    }
-                    break
+        // 현재 indentLevel과 동일하고, 부모 indentLevel이 다른 경우 찾기
+        if previousIndentLevel == indentLevel {
+            let numberPattern = #"^\s*\d+\."#
+            if let match = previousLine.range(of: numberPattern, options: .regularExpression) {
+                let matchedNumber = previousLine[match].trimmingCharacters(in: .whitespaces).dropLast()
+                if let previousNumber = Int(matchedNumber) {
+                    number = previousNumber + 1
                 }
             }
-
-            let newPrefix: String
-            switch style {
-            case .numbered:
-                newPrefix = "\(number). "
-            default:
-                newPrefix = prefix
-            }
-
-            // 탭이나 공백을 포함한 들여쓰기를 유지하고 리스트 기호만 교체
-            let updatedLine = lineText.replacingOccurrences(of: #"^([\t ]*)(• |\d+\.|☐ |☑ )?"#, with: "$1" + newPrefix, options: .regularExpression)
-
-            textView.replace(lineRange, withText: updatedLine)
+            break
+        } else if previousIndentLevel < indentLevel {
+            // 부모가 다르면 숫자를 1로 설정하고 종료
+            number = 1
+            break
         }
+    }
+
+    let newPrefix: String
+    switch style {
+    case .numbered:
+        newPrefix = "\(number). "
+    default:
+        newPrefix = prefix
+    }
+
+    // 탭이나 공백을 포함한 들여쓰기를 유지하고 리스트 기호만 교체
+    let updatedLine = lineText.replacingOccurrences(of: #"^([\t ]*)(• |\d+\.|☐ |☑ )?"#, with: "$1" + newPrefix, options: .regularExpression)
+
+    textView.replace(lineRange, withText: updatedLine)
+}
+
 
         @objc func indentText() {
             guard let textView = findFirstResponder(),
