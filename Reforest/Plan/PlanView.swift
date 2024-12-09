@@ -131,7 +131,6 @@ struct MarkdownEditorView: UIViewRepresentable {
             }
         }
 
-
         func insertListItem(style: ListStyle, prefix: String) {
             let newSubLine = SubLineModel(
                 id: UUID(),
@@ -156,22 +155,41 @@ struct MarkdownEditorView: UIViewRepresentable {
 
         @objc func indentText() {
             guard let textView = findFirstResponder(),
-                  let selectedRange = textView.selectedTextRange,
-                  let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
-                  let lineText = textView.text(in: lineRange) else { return }
+                let selectedRange = textView.selectedTextRange,
+                let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
+                let lineText = textView.text(in: lineRange) else { return }
 
             let indentedLine = "\t" + lineText
             textView.replace(lineRange, withText: indentedLine)
+
+            // 모델의 indentLevel 업데이트
+            updateIndentLevel(for: lineText, increase: true)
+        }
+
+        func updateIndentLevel(for lineText: String, increase: Bool) {
+            // 현재 contentID에 해당하는 SubLine을 찾고 indentLevel을 업데이트
+            if let subLine = viewModel.findSubLine(with: lineText, in: contentID, categoryID: categoryID) {
+                var updatedSubLine = subLine
+                if increase {
+                    updatedSubLine.indentLevel += 1
+                } else {
+                    updatedSubLine.indentLevel = max(updatedSubLine.indentLevel - 1, 0)
+                }
+                viewModel.updateSubLine(in: contentID, categoryID: categoryID, subLine: updatedSubLine)
+            }
         }
 
         @objc func outdentText() {
             guard let textView = findFirstResponder(),
-                  let selectedRange = textView.selectedTextRange,
-                  let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
-                  let lineText = textView.text(in: lineRange) else { return }
+                let selectedRange = textView.selectedTextRange,
+                let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
+                let lineText = textView.text(in: lineRange) else { return }
 
             let updatedLine = lineText.replacingOccurrences(of: #"^(?:\t| {4})"#, with: "", options: .regularExpression)
             textView.replace(lineRange, withText: updatedLine)
+
+            // 모델의 indentLevel 업데이트
+            updateIndentLevel(for: lineText, increase: false)
         }
 
         @objc func dismissKeyboard() {
