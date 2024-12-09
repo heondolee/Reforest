@@ -12,9 +12,10 @@ struct MarkdownEditorView: UIViewRepresentable {
         textView.font = UIFont.systemFont(ofSize: 16)
         textView.delegate = context.coordinator
         textView.inputAccessoryView = context.coordinator.makeToolbar()
-
-        // 탭 제스처 추가
+        
+        // 탭 제스처 추가 (기본 터치 이벤트와 함께 동작하도록 설정)
         let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(context.coordinator.handleTap(_:)))
+        tapGesture.cancelsTouchesInView = false  // 기본 터치 이벤트를 취소하지 않도록 설정
         textView.addGestureRecognizer(tapGesture)
 
         return textView
@@ -76,6 +77,16 @@ struct MarkdownEditorView: UIViewRepresentable {
         @objc func handleTap(_ gesture: UITapGestureRecognizer) {
             guard let textView = gesture.view as? UITextView else { return }
             let location = gesture.location(in: textView)
+
+            // 탭한 위치로 커서를 이동
+            if let position = textView.closestPosition(to: location) {
+                textView.selectedTextRange = textView.textRange(from: position, to: position)
+            }
+
+            // 키보드 활성화
+            if !textView.isFirstResponder {
+                textView.becomeFirstResponder()
+            }
 
             if let position = textView.closestPosition(to: location),
             let range = textView.tokenizer.rangeEnclosingPosition(position, with: .line, inDirection: UITextDirection(rawValue: 0)),
