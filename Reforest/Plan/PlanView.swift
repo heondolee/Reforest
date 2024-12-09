@@ -31,7 +31,6 @@ struct MarkdownEditorView: UIViewRepresentable {
             parent.text = textView.text
         }
 
-        // 툴바 생성 메서드
         func makeToolbar() -> UIToolbar {
             let toolbar = UIToolbar()
             toolbar.sizeToFit()
@@ -47,17 +46,29 @@ struct MarkdownEditorView: UIViewRepresentable {
             return toolbar
         }
 
-        // 툴바 버튼 액션 메서드들
+        // 현재 커서 위치 줄의 맨 앞에 기호 삽입 및 변경
         @objc func insertBullet() {
-            insertText("• ")
+            replaceLinePrefix(with: "• ")
         }
 
         @objc func insertNumbering() {
-            insertText("1. ")
+            replaceLinePrefix(with: "1. ")
         }
 
         @objc func insertCheckbox() {
-            insertText("☐ ")
+            replaceLinePrefix(with: "☐ ")
+        }
+
+        // 현재 줄의 맨 앞 기호를 새로운 기호로 교체
+        func replaceLinePrefix(with prefix: String) {
+            guard let textView = findFirstResponder(),
+                let selectedRange = textView.selectedTextRange,
+                let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
+                let lineText = textView.text(in: lineRange) else { return }
+
+            // 기존 기호를 제거하고 새로운 기호로 교체
+            let updatedLine = lineText.replacingOccurrences(of: #"^(• |1\. |☐ )?"#, with: prefix, options: .regularExpression)
+            textView.replace(lineRange, withText: updatedLine)
         }
 
         @objc func indentText() {
@@ -76,7 +87,6 @@ struct MarkdownEditorView: UIViewRepresentable {
                 let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
                 let lineText = textView.text(in: lineRange) else { return }
 
-            // 줄 맨 앞의 탭 문자(\t) 또는 스페이스 4칸을 제거
             let updatedLine = lineText.replacingOccurrences(of: #"^(?:\t| {4})"#, with: "", options: .regularExpression)
             textView.replace(lineRange, withText: updatedLine)
         }
@@ -85,14 +95,6 @@ struct MarkdownEditorView: UIViewRepresentable {
             findFirstResponder()?.resignFirstResponder()
         }
 
-        // 텍스트뷰에 텍스트 삽입
-        func insertText(_ text: String) {
-            if let textView = findFirstResponder(), let range = textView.selectedTextRange {
-                textView.replace(range, withText: text)
-            }
-        }
-
-        // 현재 활성화된 텍스트뷰 찾기
         func findFirstResponder() -> UITextView? {
             UIApplication.shared.windows.first { $0.isKeyWindow }?.rootViewController?.view.findTextView()
         }
