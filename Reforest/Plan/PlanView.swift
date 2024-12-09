@@ -140,34 +140,49 @@ struct MarkdownEditorView: UIViewRepresentable {
 
             if let position = textView.closestPosition(to: location),
             let range = textView.tokenizer.rangeEnclosingPosition(position, with: .line, inDirection: UITextDirection(rawValue: 0)),
-            let lineText = textView.text(in: range) {
+            var lineText = textView.text(in: range) {
 
-                let checkedPattern = #"^☐ "#  // 체크되지 않은 상태
-                let uncheckedPattern = #"^☑ "# // 체크된 상태
+                // 정규식으로 체크박스 패턴 확인 (들여쓰기와 공백을 무시)
+                let checkboxPattern = #"^\s*(☐ |☑ )"#
+                let regex = try? NSRegularExpression(pattern: checkboxPattern)
 
-                if lineText.hasPrefix("☐ ") || lineText.hasPrefix("☑ ") {
+                if let _ = regex?.firstMatch(in: lineText, options: [], range: NSRange(lineText.startIndex..., in: lineText)) {
                     toggleCheckbox(in: textView, at: range, with: lineText)
                 }
             }
         }
 
-        func toggleCheckbox(in textView: UITextView, at range: UITextRange, with lineText: String) {
-            let updatedLine: String
-            var newIsChecked: Bool = false
+func toggleCheckbox(in textView: UITextView, at range: UITextRange, with lineText: String) {
+    let updatedLine: String
+    var newIsChecked: Bool = false
 
-            if lineText.hasPrefix("☐ ") {
-                updatedLine = lineText.replacingOccurrences(of: "☐ ", with: "☑ ")
-                newIsChecked = true
-            } else if lineText.hasPrefix("☑ ") {
-                updatedLine = lineText.replacingOccurrences(of: "☑ ", with: "☐ ")
-                newIsChecked = false
-            } else {
-                return
-            }
+    // 정규식을 사용해 탭이나 공백 이후 체크박스 기호를 찾음
+    let pattern = #"^([\t ]*)(☐ |☑ )"#
 
-            // 텍스트 뷰에서 체크박스 토글 적용
-            textView.replace(range, withText: updatedLine)
+    if let regex = try? NSRegularExpression(pattern: pattern),
+       let match = regex.firstMatch(in: lineText, range: NSRange(lineText.startIndex..., in: lineText)) {
+        
+        let leadingWhitespace = (lineText as NSString).substring(with: match.range(at: 1))
+        print("leadingWhitespace: \(leadingWhitespace)")
+        let checkbox = (lineText as NSString).substring(with: match.range(at: 2))
+        print("checkbox: \(checkbox)")
+        let remainingText = (lineText as NSString).substring(from: match.range.upperBound)
+        print("remainingText: \(remainingText)")
+        
+        if checkbox == "☐ " {
+            updatedLine = leadingWhitespace + "☑ " + remainingText
+            newIsChecked = true
+        } else if checkbox == "☑ " {
+            updatedLine = leadingWhitespace + "☐ " + remainingText
+            newIsChecked = false
+        } else {
+            return
         }
+
+        // 텍스트 뷰에서 체크박스 토글 적용
+        textView.replace(range, withText: updatedLine)
+    }
+}
 
         func insertListItem(style: ListStyle, prefix: String) {
             // 현재 줄에서 탭과 공백을 유지하고 맨 앞 리스트 기호만 교체
