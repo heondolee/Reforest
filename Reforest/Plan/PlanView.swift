@@ -72,18 +72,6 @@ struct MarkdownEditorView: UIViewRepresentable {
                         textView.selectedTextRange = textView.textRange(from: newPosition, to: newPosition)
                     }
                 }
-
-                // 새로운 SubLineModel 생성 및 추가
-                let newSubLine = SubLineModel(
-                    id: UUID(),
-                    text: newPrefix + "New item",
-                    indentLevel: indentLevel,  // 현재 indentLevel 적용
-                    listStyle: determineListStyle(from: newPrefix),
-                    isChecked: false,
-                    subLines: []
-                )
-                viewModel.addSubLine(to: contentID, in: categoryID, subLine: newSubLine)
-
                 return false  // 기본 Enter 동작을 중단
             }
 
@@ -179,31 +167,9 @@ struct MarkdownEditorView: UIViewRepresentable {
 
             // 텍스트 뷰에서 체크박스 토글 적용
             textView.replace(range, withText: updatedLine)
-
-            // 모델의 isChecked 값 업데이트
-            updateModelCheckboxState(for: lineText, isChecked: newIsChecked)
-        }
-
-        func updateModelCheckboxState(for lineText: String, isChecked: Bool) {
-            // 현재 contentID에 해당하는 SubLine을 찾고 상태를 업데이트
-            if let subLine = viewModel.findSubLine(with: lineText, in: contentID, categoryID: categoryID) {
-                var updatedSubLine = subLine
-                updatedSubLine.isChecked = isChecked
-                viewModel.updateSubLine(in: contentID, categoryID: categoryID, subLine: updatedSubLine)
-            }
         }
 
         func insertListItem(style: ListStyle, prefix: String) {
-            let newSubLine = SubLineModel(
-                id: UUID(),
-                text: prefix + "New item",
-                indentLevel: 0,
-                listStyle: style,
-                isChecked: false,
-                subLines: []
-            )
-
-            viewModel.addSubLine(to: contentID, in: categoryID, subLine: newSubLine)
             // 현재 줄의 맨 앞 기호를 새로운 기호로 교체
             guard let textView = findFirstResponder(),
                 let selectedRange = textView.selectedTextRange,
@@ -223,22 +189,6 @@ struct MarkdownEditorView: UIViewRepresentable {
 
             let indentedLine = "\t" + lineText
             textView.replace(lineRange, withText: indentedLine)
-
-            // 모델의 indentLevel 업데이트
-            updateIndentLevel(for: lineText, increase: true)
-        }
-
-        func updateIndentLevel(for lineText: String, increase: Bool) {
-            // 현재 contentID에 해당하는 SubLine을 찾고 indentLevel을 업데이트
-            if let subLine = viewModel.findSubLine(with: lineText, in: contentID, categoryID: categoryID) {
-                var updatedSubLine = subLine
-                if increase {
-                    updatedSubLine.indentLevel += 1
-                } else {
-                    updatedSubLine.indentLevel = max(updatedSubLine.indentLevel - 1, 0)
-                }
-                viewModel.updateSubLine(in: contentID, categoryID: categoryID, subLine: updatedSubLine)
-            }
         }
 
         @objc func outdentText() {
@@ -249,9 +199,6 @@ struct MarkdownEditorView: UIViewRepresentable {
 
             let updatedLine = lineText.replacingOccurrences(of: #"^(?:\t| {4})"#, with: "", options: .regularExpression)
             textView.replace(lineRange, withText: updatedLine)
-
-            // 모델의 indentLevel 업데이트
-            updateIndentLevel(for: lineText, increase: false)
         }
 
         @objc func dismissKeyboard() {
