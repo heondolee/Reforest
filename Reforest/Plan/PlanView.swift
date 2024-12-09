@@ -279,14 +279,16 @@ extension UIView {
 }
 
 struct PlanView: View {
-    @StateObject var viewModel = MeViewModel(meCategoryModelList: [], profile: ProfileModel(name: "User", value: "0"))
+    @StateObject var viewModel = MeViewModel(meCategoryModelList: mockData_meCategoryModelList, profile: ProfileModel(name: "User", value: "0"))
     @State private var text = ""
 
     var body: some View {
-        VStack {
-            MarkdownEditorView(text: $text, viewModel: viewModel, categoryID: UUID(), contentID: UUID())
+    if let firstCategory = viewModel.meCategoryModelList.first,
+        let firstContent = firstCategory.contentList.first {
+            MarkdownEditorView(text: $text, viewModel: viewModel, categoryID: firstCategory.id, contentID: firstContent.id)
                 .padding()
+        } else {
+            Text("No Content Available")
         }
-        .navigationTitle("Markdown Editor")
     }
 }
