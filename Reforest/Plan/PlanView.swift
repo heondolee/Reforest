@@ -170,14 +170,15 @@ struct MarkdownEditorView: UIViewRepresentable {
         }
 
         func insertListItem(style: ListStyle, prefix: String) {
-            // 현재 줄의 맨 앞 기호를 새로운 기호로 교체
+            // 현재 줄에서 탭과 공백을 유지하고 맨 앞 리스트 기호만 교체
             guard let textView = findFirstResponder(),
                 let selectedRange = textView.selectedTextRange,
                 let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
                 let lineText = textView.text(in: lineRange) else { return }
 
-            // 기존 기호를 제거하고 새로운 기호로 교체
-            let updatedLine = lineText.replacingOccurrences(of: #"^(• |1\. |☐ )?"#, with: prefix, options: .regularExpression)
+            // 탭이나 공백을 포함한 들여쓰기를 유지하고 리스트 기호만 교체
+            let updatedLine = lineText.replacingOccurrences(of: #"^([\t ]*)(• |1\. |☐ |☑ )?"#, with: "$1" + prefix, options: .regularExpression)
+
             textView.replace(lineRange, withText: updatedLine)
         }
 
