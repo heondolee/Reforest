@@ -32,7 +32,7 @@ struct EditQuestionView: View {
                         indentLevel: 0,
                         listStyle: .none, // 초기화할 때 리스트 스타일 설정
                         isChecked: false, // 기본값은 체크되지 않음
-                        subLines: [] // 계층 구조 초기���
+                        subLines: [] // 계층 구조 초기
                     )
                 ]
             ))
@@ -138,11 +138,6 @@ extension EditQuestionView {
             .padding(.horizontal, 10)
 
         }
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                KeyboardToolbar()
-            }
-        }
         .whiteBoxWithShadow(lineSpacing: 8)
         .padding(.horizontal, 20)
     }
@@ -192,7 +187,6 @@ extension EditQuestionView {
                             set: { subLine.wrappedValue.subLines[childIndex] = $0 }
                         )
                     )
-//                    .padding(.leading, CGFloat(subLine.wrappedValue.indentLevel + 1) * 20) // 추가적인 들여쓰기
                 }
             }
         )
