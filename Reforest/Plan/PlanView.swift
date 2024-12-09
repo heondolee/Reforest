@@ -42,48 +42,45 @@ struct MarkdownEditorView: UIViewRepresentable {
             self.contentID = contentID
         }
 
-    func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
-        // Enter 키가 눌렸을 때
-        if text == "\n" {
-            let nsText = textView.text as NSString
-            let currentLineRange = nsText.lineRange(for: range)
-            let currentLine = nsText.substring(with: currentLineRange)
+func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+    if text == "\n" {
+        let nsText = textView.text as NSString
+        let currentLineRange = nsText.lineRange(for: range)
+        let currentLine = nsText.substring(with: currentLineRange)
 
-            // 현재 줄에서 indentLevel을 계산
-            let indentLevel = currentLine.prefix(while: { $0 == "\t" }).count
+        let indentLevel = currentLine.prefix(while: { $0 == "\t" }).count
+        let lines = textView.text.components(separatedBy: "\n")
+        let currentIndex = lines.firstIndex(of: currentLine) ?? 0
 
-            // 현재 줄에서 리스트 스타일 접두사 확인 (currentLine 사용)
-            let listStylePattern = #"^\s*(• |1\. |☐ |☑ )"#
-            let regex = try? NSRegularExpression(pattern: listStylePattern)
-            let matches = regex?.matches(in: currentLine, range: NSRange(currentLine.startIndex..., in: currentLine))
+        var newPrefix: String = ""
+        let listStylePattern = #"^\s*(• |(\d+)\.|☐ |☑ )"#
+        let regex = try? NSRegularExpression(pattern: listStylePattern)
+        
+        if let match = regex?.firstMatch(in: currentLine, range: NSRange(currentLine.startIndex..., in: currentLine)) {
+            let matchedPrefix = (currentLine as NSString).substring(with: match.range).trimmingCharacters(in: .whitespaces)
 
-            var newPrefix: String = ""
-            if let match = matches?.first {
-                let matchedPrefix = (currentLine as NSString).substring(with: match.range).trimmingCharacters(in: .whitespaces)
-
-                // 체크박스가 체크돼있든 안돼있든 항상 빈 체크박스로 설정
-                if matchedPrefix == "☐" || matchedPrefix == "☑" {
-                    newPrefix = "☐ "
-                } else {
-                    newPrefix = matchedPrefix + " "
-                }
+            if let numberMatch = match.range(at: 2).location != NSNotFound ? Int((currentLine as NSString).substring(with: match.range(at: 2))) : nil {
+                newPrefix = "\(numberMatch + 1). "
+            } else if matchedPrefix == "☐" || matchedPrefix == "☑" {
+                newPrefix = "☐ "
+            } else {
+                newPrefix = matchedPrefix + " "
             }
-
-            // 새 줄에 indentLevel과 접두사 적용
-            let newLine = "\n" + String(repeating: "\t", count: indentLevel) + newPrefix
-
-            // 텍스트 뷰에 새 줄 삽입
-            if let selectedTextRange = textView.selectedTextRange {
-                textView.replace(selectedTextRange, withText: newLine)
-                if let newPosition = textView.position(from: selectedTextRange.start, offset: newLine.count) {
-                    textView.selectedTextRange = textView.textRange(from: newPosition, to: newPosition)
-                }
-            }
-            return false  // 기본 Enter 동작을 중단
         }
 
-        return true  // 다른 입력은 기본 동작을 수행
+        let newLine = "\n" + String(repeating: "\t", count: indentLevel) + newPrefix
+
+        if let selectedTextRange = textView.selectedTextRange {
+            textView.replace(selectedTextRange, withText: newLine)
+            if let newPosition = textView.position(from: selectedTextRange.start, offset: newLine.count) {
+                textView.selectedTextRange = textView.textRange(from: newPosition, to: newPosition)
+            }
+        }
+        return false
     }
+    return true
+}
+
 
         func determineListStyle(from prefix: String) -> ListStyle {
             let trimmedPrefix = prefix.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -207,17 +204,48 @@ func toggleCheckbox(in textView: UITextView, at range: UITextRange, with lineTex
 }
 
         func insertListItem(style: ListStyle, prefix: String) {
-            // 현재 줄에서 탭과 공백을 유지하고 맨 앞 리스트 기호만 교체
-            guard let textView = findFirstResponder(),
-                let selectedRange = textView.selectedTextRange,
-                let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
-                let lineText = textView.text(in: lineRange) else { return }
+    guard let textView = findFirstResponder(),
+          let selectedRange = textView.selectedTextRange,
+          let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
+          let lineText = textView.text(in: lineRange) else { return }
 
-            // 탭이나 공백을 포함한 들여쓰기를 유지하고 리스트 기호만 교체
-            let updatedLine = lineText.replacingOccurrences(of: #"^([\t ]*)(• |1\. |☐ |☑ )?"#, with: "$1" + prefix, options: .regularExpression)
+    let indentLevel = lineText.prefix(while: { $0 == "\t" }).count
+    let lines = textView.text.components(separatedBy: "\n")
+    let currentIndex = lines.firstIndex(of: lineText) ?? 0
 
-            textView.replace(lineRange, withText: updatedLine)
+    var number = 1
+
+    // 이전 라인들 중에서 동일한 indentLevel의 마지막 숫자 찾기
+    for i in (0..<currentIndex).reversed() {
+        let previousLine = lines[i]
+        let previousIndentLevel = previousLine.prefix(while: { $0 == "\t" }).count
+
+        if previousIndentLevel == indentLevel {
+            let numberPattern = #"^\s*\d+\."#
+            if let match = previousLine.range(of: numberPattern, options: .regularExpression) {
+                let matchedNumber = previousLine[match].trimmingCharacters(in: .whitespaces).dropLast()
+                if let previousNumber = Int(matchedNumber) {
+                    number = previousNumber + 1
+                }
+            }
+            break
         }
+    }
+
+    let newPrefix: String
+    switch style {
+    case .numbered:
+        newPrefix = "\(number). "
+    default:
+        newPrefix = prefix
+    }
+
+    // 탭이나 공백을 포함한 들여쓰기를 유지하고 리스트 기호만 교체
+    let updatedLine = lineText.replacingOccurrences(of: #"^([\t ]*)(• |1\. |☐ |☑ )?"#, with: "$1" + newPrefix, options: .regularExpression)
+
+    textView.replace(lineRange, withText: updatedLine)
+}
+
 
         @objc func indentText() {
             guard let textView = findFirstResponder(),
