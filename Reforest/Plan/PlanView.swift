@@ -12,7 +12,12 @@ struct MarkdownEditorView: UIViewRepresentable {
         textView.delegate = context.coordinator
         textView.inputAccessoryView = context.coordinator.makeToolbar()
         textView.text = context.coordinator.generateTextFromModel()
-        
+
+        // 탭 제스처 추가 (기본 터치 이벤트와 함께 동작하도록 설정)
+        let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(context.coordinator.handleTap(_:)))
+        tapGesture.cancelsTouchesInView = false  // 기본 터치 이벤트를 취소하지 않도록 설정
+        textView.addGestureRecognizer(tapGesture)
+
         return textView
     }
 
@@ -117,19 +122,77 @@ struct MarkdownEditorView: UIViewRepresentable {
             return toolbar
         }
 
+        // 리스트 스타일 삽입 메서드
         @objc func insertBullet() {
-            insertListItem(prefix: "• ")
+            insertListItem(style: .bulleted, prefix: "• ")
         }
 
         @objc func insertNumbering() {
-            insertListItem(prefix: "1. ")
+            insertListItem(style: .numbered, prefix: "1. ")
         }
 
         @objc func insertCheckbox() {
-            insertListItem(prefix: "☐ ")
+            insertListItem(style: .checkbox, prefix: "☐ ")
         }
 
-        func insertListItem(prefix: String) {
+        @objc func handleTap(_ gesture: UITapGestureRecognizer) {
+            guard let textView = gesture.view as? UITextView else { return }
+            let location = gesture.location(in: textView)
+
+            // 탭한 위치로 커서를 이동
+            if let position = textView.closestPosition(to: location) {
+                textView.selectedTextRange = textView.textRange(from: position, to: position)
+            }
+
+            // 키보드 활성화
+            if !textView.isFirstResponder {
+                textView.becomeFirstResponder()
+            }
+
+            if let position = textView.closestPosition(to: location),
+            let range = textView.tokenizer.rangeEnclosingPosition(position, with: .line, inDirection: UITextDirection(rawValue: 0)),
+            let lineText = textView.text(in: range) {
+
+                let checkedPattern = #"^☐ "#  // 체크되지 않은 상태
+                let uncheckedPattern = #"^☑ "# // 체크된 상태
+
+                if lineText.hasPrefix("☐ ") || lineText.hasPrefix("☑ ") {
+                    toggleCheckbox(in: textView, at: range, with: lineText)
+                }
+            }
+        }
+
+        func toggleCheckbox(in textView: UITextView, at range: UITextRange, with lineText: String) {
+            let updatedLine: String
+            var newIsChecked: Bool = false
+
+            if lineText.hasPrefix("☐ ") {
+                updatedLine = lineText.replacingOccurrences(of: "☐ ", with: "☑ ")
+                newIsChecked = true
+            } else if lineText.hasPrefix("☑ ") {
+                updatedLine = lineText.replacingOccurrences(of: "☑ ", with: "☐ ")
+                newIsChecked = false
+            } else {
+                return
+            }
+
+            // 텍스트 뷰에서 체크박스 토글 적용
+            textView.replace(range, withText: updatedLine)
+
+            // 모델의 isChecked 값 업데이트
+            updateModelCheckboxState(for: lineText, isChecked: newIsChecked)
+        }
+
+        func updateModelCheckboxState(for lineText: String, isChecked: Bool) {
+            // 현재 contentID에 해당하는 SubLine을 찾고 상태를 업데이트
+            if let subLine = viewModel.findSubLine(with: lineText, in: contentID, categoryID: categoryID) {
+                var updatedSubLine = subLine
+                updatedSubLine.isChecked = isChecked
+                viewModel.updateSubLine(in: contentID, categoryID: categoryID, subLine: updatedSubLine)
+            }
+        }
+
+        func insertListItem(style: ListStyle, prefix: String) {
             guard let textView = findFirstResponder(),
                   let selectedRange = textView.selectedTextRange else { return }
             
@@ -169,7 +232,6 @@ struct PlanView: View {
                let firstContent = firstCategory.contentList.first {
                 MarkdownEditorView(viewModel: viewModel, categoryID: firstCategory.id, contentID: firstContent.id)
                     .padding()
-                    .navigationTitle("Markdown Editor")
             } else {
                 Text("No Content Available")
             }
