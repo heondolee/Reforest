@@ -83,4 +83,14 @@ class MeViewModel: ObservableObject {
         }
         meCategoryModelList[categoryIndex].contentList[contentIndex].subLines[subLineIndex].isChecked.toggle()
     }
+
+    func findSubLine(with text: String, in contentID: UUID, categoryID: UUID) -> SubLineModel? {
+    guard let category = meCategoryModelList.first(where: { $0.id == categoryID }),
+          let content = category.contentList.first(where: { $0.id == contentID }) else {
+        return nil
+    }
+    
+    return content.subLines.first(where: { $0.text == text })
+}
+
 }

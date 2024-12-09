@@ -12,6 +12,11 @@ struct MarkdownEditorView: UIViewRepresentable {
         textView.font = UIFont.systemFont(ofSize: 16)
         textView.delegate = context.coordinator
         textView.inputAccessoryView = context.coordinator.makeToolbar()
+
+        // 탭 제스처 추가
+        let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(context.coordinator.handleTap(_:)))
+        textView.addGestureRecognizer(tapGesture)
+
         return textView
     }
 
@@ -68,6 +73,54 @@ struct MarkdownEditorView: UIViewRepresentable {
             insertListItem(style: .checkbox, prefix: "☐ ")
         }
 
+        @objc func handleTap(_ gesture: UITapGestureRecognizer) {
+            guard let textView = gesture.view as? UITextView else { return }
+            let location = gesture.location(in: textView)
+
+            if let position = textView.closestPosition(to: location),
+            let range = textView.tokenizer.rangeEnclosingPosition(position, with: .line, inDirection: UITextDirection(rawValue: 0)),
+            let lineText = textView.text(in: range) {
+
+                let checkedPattern = #"^☐ "#  // 체크되지 않은 상태
+                let uncheckedPattern = #"^☑ "# // 체크된 상태
+
+                if lineText.hasPrefix("☐ ") || lineText.hasPrefix("☑ ") {
+                    toggleCheckbox(in: textView, at: range, with: lineText)
+                }
+            }
+        }
+
+        func toggleCheckbox(in textView: UITextView, at range: UITextRange, with lineText: String) {
+            let updatedLine: String
+            var newIsChecked: Bool = false
+
+            if lineText.hasPrefix("☐ ") {
+                updatedLine = lineText.replacingOccurrences(of: "☐ ", with: "☑ ")
+                newIsChecked = true
+            } else if lineText.hasPrefix("☑ ") {
+                updatedLine = lineText.replacingOccurrences(of: "☑ ", with: "☐ ")
+                newIsChecked = false
+            } else {
+                return
+            }
+
+            // 텍스트 뷰에서 체크박스 토글 적용
+            textView.replace(range, withText: updatedLine)
+
+            // 모델의 isChecked 값 업데이트
+            updateModelCheckboxState(for: lineText, isChecked: newIsChecked)
+        }
+
+        func updateModelCheckboxState(for lineText: String, isChecked: Bool) {
+            // 현재 contentID에 해당하는 SubLine을 찾고 상태를 업데이트
+            if let subLine = viewModel.findSubLine(with: lineText, in: contentID, categoryID: categoryID) {
+                var updatedSubLine = subLine
+                updatedSubLine.isChecked = isChecked
+                viewModel.updateSubLine(in: contentID, categoryID: categoryID, subLine: updatedSubLine)
+            }
+        }
+
+
         func insertListItem(style: ListStyle, prefix: String) {
             let newSubLine = SubLineModel(
                 id: UUID(),
@@ -79,6 +132,15 @@ struct MarkdownEditorView: UIViewRepresentable {
             )
 
             viewModel.addSubLine(to: contentID, in: categoryID, subLine: newSubLine)
+            // 현재 줄의 맨 앞 기호를 새로운 기호로 교체
+            guard let textView = findFirstResponder(),
+                let selectedRange = textView.selectedTextRange,
+                let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
+                let lineText = textView.text(in: lineRange) else { return }
+
+            // 기존 기호를 제거하고 새로운 기호로 교체
+            let updatedLine = lineText.replacingOccurrences(of: #"^(• |1\. |☐ )?"#, with: prefix, options: .regularExpression)
+            textView.replace(lineRange, withText: updatedLine)
         }
 
         @objc func indentText() {
