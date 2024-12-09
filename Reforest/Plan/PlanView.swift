@@ -43,7 +43,7 @@ struct MarkdownEditorView: UIViewRepresentable {
             self.contentID = contentID
         }
 
-                func generateTextFromModel() -> String {
+        func generateTextFromModel() -> String {
             guard let content = viewModel.meCategoryModelList
                 .first(where: { $0.id == categoryID })?
                 .contentList.first(where: { $0.id == contentID }) else {
@@ -73,41 +73,41 @@ struct MarkdownEditorView: UIViewRepresentable {
         func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
             // Enter 키가 눌렸을 때
             if text == "\n" {
-                let nsText = textView.text as NSString
-                let currentLineRange = nsText.lineRange(for: range)
-                let currentLine = nsText.substring(with: currentLineRange)
-
-                // 현재 줄에서 indentLevel을 계산
-                let indentLevel = currentLine.prefix(while: { $0 == "\t" }).count
-
-                // 현재 줄에서 리스트 스타일을 확인
-                let listStylePattern = #"^\s*(• |1\. |☐ |☑ )"#
-                let regex = try? NSRegularExpression(pattern: listStylePattern)
-                let matches = regex?.matches(in: currentLine, range: NSRange(currentLine.startIndex..., in: currentLine))
-
-                var newPrefix = ""
-                if let match = matches?.first {
-                    newPrefix = (currentLine as NSString).substring(with: match.range)
+                print("Enter key pressed1")
+                guard let selectedRange = textView.selectedTextRange,
+                    let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
+                    let lineText = textView.text(in: lineRange) else {
+                    return true
                 }
 
-                // 새 줄에 리스트 스타일과 indentLevel 적용
-                let newLine = "\n" + String(repeating: "\t", count: indentLevel) + newPrefix
+                let pattern = #"^\s*(• |1\. |☐ |☑ )?"#
+                let pureText = lineText.replacingOccurrences(of: pattern, with: "", options: .regularExpression)
+
+                guard let currentSubLine = viewModel.findSubLine(with: pureText, in: contentID, categoryID: categoryID) else {
+                    return true
+                }
+                print("Enter key pressed2")
+
+                // 현재 SubLine 모델에서 indentLevel과 listStyle 가져오기
+                let indentLevel = currentSubLine.indentLevel
+                let newPrefix = determinePrefix(for: currentSubLine.listStyle, isChecked: currentSubLine.isChecked)
+
+                // 새 줄 텍스트 생성
+                let newLineText = "\n" + String(repeating: "\t", count: indentLevel) + newPrefix
 
                 // 텍스트 뷰에 새 줄 삽입
-                if let selectedTextRange = textView.selectedTextRange {
-                    textView.replace(selectedTextRange, withText: newLine)
-                    if let newPosition = textView.position(from: selectedTextRange.start, offset: newLine.count) {
-                        textView.selectedTextRange = textView.textRange(from: newPosition, to: newPosition)
-                    }
+                textView.replace(selectedRange, withText: newLineText)
+                if let newPosition = textView.position(from: selectedRange.start, offset: newLineText.count) {
+                    textView.selectedTextRange = textView.textRange(from: newPosition, to: newPosition)
                 }
 
                 // 새로운 SubLineModel 생성 및 추가
                 let newSubLine = SubLineModel(
                     id: UUID(),
                     text: newPrefix + "New item",
-                    indentLevel: indentLevel,  // 현재 indentLevel 적용
-                    listStyle: determineListStyle(from: newPrefix),
-                    isChecked: false,
+                    indentLevel: indentLevel,
+                    listStyle: currentSubLine.listStyle,
+                    isChecked: currentSubLine.isChecked,
                     subLines: []
                 )
                 viewModel.addSubLine(to: contentID, in: categoryID, subLine: newSubLine)
@@ -118,17 +118,16 @@ struct MarkdownEditorView: UIViewRepresentable {
             return true  // 다른 입력은 기본 동작을 수행
         }
 
-        func determineListStyle(from prefix: String) -> ListStyle {
-            let trimmedPrefix = prefix.trimmingCharacters(in: .whitespacesAndNewlines)
-            switch trimmedPrefix {
-            case "•":
-                return .bulleted
-            case "1.":
-                return .numbered
-            case "☐":
-                return .checkbox
-            default:
-                return .none
+        func determinePrefix(for style: ListStyle, isChecked: Bool = false) -> String {
+            switch style {
+            case .bulleted:
+                return "• " 
+            case .numbered:
+                return "1. "
+            case .checkbox:
+                return isChecked ? "☑ " : "☐ "
+            case .none:
+                return ""
             }
         }
 
@@ -311,12 +310,36 @@ struct PlanView: View {
     @State private var text = ""
 
     var body: some View {
-    if let firstCategory = viewModel.meCategoryModelList.first,
-        let firstContent = firstCategory.contentList.first {
-            MarkdownEditorView(text: $text, viewModel: viewModel, categoryID: firstCategory.id, contentID: firstContent.id)
-                .padding()
+        if let firstCategory = viewModel.meCategoryModelList.first,
+           let firstContent = firstCategory.contentList.first {
+            
+            VStack {
+                MarkdownEditorView(text: $text, viewModel: viewModel, categoryID: firstCategory.id, contentID: firstContent.id)
+                    .padding()
+            }
+            .navigationTitle("Markdown Editor")
+            .onAppear {
+                // 첫 번째 카테고리와 첫 번째 컨텐츠 정보 프린트
+                print("=== First Category ===")
+                print("Category ID: \(firstCategory.id)")
+                print("Category Name: \(firstCategory.title)")
+
+                print("\n=== First Content ===")
+                print("Content ID: \(firstContent.id)")
+                print("Content Name: \(firstContent.headLine)")
+                print("SubLines:")
+                
+                for subLine in firstContent.subLines {
+                    print("  - SubLine ID: \(subLine.id)")
+                    print("    Text: \(subLine.text)")
+                    print("    Indent Level: \(subLine.indentLevel)")
+                    print("    List Style: \(subLine.listStyle)")
+                    print("    Is Checked: \(subLine.isChecked)")
+                }
+            }
         } else {
             Text("No Content Available")
         }
     }
 }
+
