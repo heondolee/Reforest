@@ -49,20 +49,17 @@ struct MarkdownEditorView: UIViewRepresentable {
                 let currentLineRange = nsText.lineRange(for: range)
                 let currentLine = nsText.substring(with: currentLineRange)
 
-                // 현재 줄에서 들여쓰기와 접두사를 제외한 순수 텍스트 추출
-                let trimmedLine = currentLine.trimmingCharacters(in: .whitespacesAndNewlines)
-                
                 // 현재 줄에서 indentLevel을 계산
                 let indentLevel = currentLine.prefix(while: { $0 == "\t" }).count
 
-                // 현재 줄에서 리스트 스타일 접두사 확인
+                // 현재 줄에서 리스트 스타일 접두사 확인 (currentLine 사용)
                 let listStylePattern = #"^\s*(• |1\. |☐ |☑ )"#
                 let regex = try? NSRegularExpression(pattern: listStylePattern)
-                let matches = regex?.matches(in: trimmedLine, range: NSRange(trimmedLine.startIndex..., in: trimmedLine))
+                let matches = regex?.matches(in: currentLine, range: NSRange(currentLine.startIndex..., in: currentLine))
 
-                var newPrefix = ""
+                var newPrefix: String = ""
                 if let match = matches?.first {
-                    newPrefix = (trimmedLine as NSString).substring(with: match.range)
+                    newPrefix = (currentLine as NSString).substring(with: match.range).trimmingCharacters(in: .whitespaces) + " "
                 }
 
                 // 새 줄에 indentLevel과 접두사 적용
