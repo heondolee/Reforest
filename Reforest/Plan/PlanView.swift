@@ -12,6 +12,7 @@ struct MarkdownEditorView: UIViewRepresentable {
         textView.font = UIFont.systemFont(ofSize: 16)
         textView.delegate = context.coordinator
         textView.inputAccessoryView = context.coordinator.makeToolbar()
+        textView.text = context.coordinator.generateTextFromModel()
         
         // 탭 제스처 추가 (기본 터치 이벤트와 함께 동작하도록 설정)
         let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(context.coordinator.handleTap(_:)))
@@ -22,7 +23,7 @@ struct MarkdownEditorView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: UITextView, context: Context) {
-        uiView.text = text
+        uiView.text = context.coordinator.generateTextFromModel()
     }
 
     func makeCoordinator() -> Coordinator {
@@ -40,6 +41,33 @@ struct MarkdownEditorView: UIViewRepresentable {
             self.viewModel = viewModel
             self.categoryID = categoryID
             self.contentID = contentID
+        }
+
+                func generateTextFromModel() -> String {
+            guard let content = viewModel.meCategoryModelList
+                .first(where: { $0.id == categoryID })?
+                .contentList.first(where: { $0.id == contentID }) else {
+                return ""
+            }
+
+            return content.subLines.map { subLine in
+                let indent = String(repeating: "\t", count: subLine.indentLevel)
+                let prefix = self.prefixForListStyle(subLine.listStyle, isChecked: subLine.isChecked)
+                return indent + prefix + subLine.text
+            }.joined(separator: "\n")
+        }
+
+        func prefixForListStyle(_ style: ListStyle, isChecked: Bool) -> String {
+            switch style {
+            case .bulleted:
+                return "• "
+            case .numbered:
+                return "1. "
+            case .checkbox:
+                return isChecked ? "☑ " : "☐ "
+            case .none:
+                return ""
+            }
         }
 
         func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
