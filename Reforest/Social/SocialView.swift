@@ -33,17 +33,22 @@ struct ListRowView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                // 들여쓰기에 맞춘 화살표
-                Button(action: {
-                    if !item.children.isEmpty {
+                // 자식이 있을 때만 화살표 버튼 표시
+                if !item.children.isEmpty {
+                    Button(action: {
                         isExpanded.toggle()
+                    }) {
+                        Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                            .frame(width: 20)
+                            .padding(.leading, CGFloat(depth) * 16)
                     }
-                }) {
-                    Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                    .buttonStyle(PlainButtonStyle())
+                } else {
+                    // 화살표 버튼이 없을 때 여백을 맞추기 위한 빈 공간
+                    Spacer()
                         .frame(width: 20)
-                        .padding(.leading, CGFloat(depth) * 16)
+                        .padding(.leading, CGFloat(depth) * 25)
                 }
-                .buttonStyle(PlainButtonStyle())
 
                 // 제목 텍스트
                 Text(item.title)
