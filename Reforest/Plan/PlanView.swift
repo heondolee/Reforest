@@ -54,7 +54,6 @@ struct MarkdownEditorView: UIViewRepresentable {
 
                 let indentLevel = currentLine.prefix(while: { $0 == "\t" }).count
                 let lines = textView.text.components(separatedBy: "\n")
-                let currentIndex = lines.firstIndex(of: currentLine) ?? 0
 
                 var newPrefix: String = ""
                 let listStylePattern = #"^\s*(• |(\d+)\.|☐ |☑ )"#
@@ -366,7 +365,11 @@ func updateOverlays(for textView: UITextView) {
         }
 
         func findFirstResponder() -> UITextView? {
-            UIApplication.shared.windows.first { $0.isKeyWindow }?.rootViewController?.view.findTextView()
+            let connectedScenes = UIApplication.shared.connectedScenes
+            let windowScene = connectedScenes.first as? UIWindowScene
+            let keyWindow = windowScene?.windows.first { $0.isKeyWindow }
+
+            return keyWindow?.rootViewController?.view.findTextView()
         }
     }
 }
