@@ -109,7 +109,7 @@ func updateOverlays(for textView: UITextView) {
     let lines = textView.text.components(separatedBy: "\n")
 
     // 각 라인의 높이와 들여쓰기 간격 설정
-    let lineHeight: CGFloat = 20.0
+    let lineHeight: CGFloat = 19.5
     let indentWidth: CGFloat = 27.0
 
     for (index, line) in lines.enumerated() {
