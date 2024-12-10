@@ -30,6 +30,7 @@
 		F366AEF72CF8D62900D05D24 /* mockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = F366AEF62CF8D62900D05D24 /* mockData.swift */; };
 		F366AEF92CF8E0E200D05D24 /* EditCategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F366AEF82CF8E0E200D05D24 /* EditCategoryView.swift */; };
 		F366AEFB2CF8E90100D05D24 /* UserdefaultKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = F366AEFA2CF8E90100D05D24 /* UserdefaultKey.swift */; };
+		F3BAB4052D083443006B8543 /* CusTextEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BAB4042D083443006B8543 /* CusTextEditorView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -57,6 +58,7 @@
 		F366AEF62CF8D62900D05D24 /* mockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = mockData.swift; sourceTree = "<group>"; };
 		F366AEF82CF8E0E200D05D24 /* EditCategoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditCategoryView.swift; sourceTree = "<group>"; };
 		F366AEFA2CF8E90100D05D24 /* UserdefaultKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserdefaultKey.swift; sourceTree = "<group>"; };
+		F3BAB4042D083443006B8543 /* CusTextEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CusTextEditorView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -174,6 +176,7 @@
 				F366AEE22CF8954900D05D24 /* ImagePicker.swift */,
 				F366AEFA2CF8E90100D05D24 /* UserdefaultKey.swift */,
 				F366AEE72CF8A30700D05D24 /* ViewExtension.swift */,
+				F3BAB4042D083443006B8543 /* CusTextEditorView.swift */,
 			);
 			path = Utility;
 			sourceTree = "<group>";
@@ -280,6 +283,7 @@
 				F366AEE32CF8954900D05D24 /* ImagePicker.swift in Sources */,
 				F3132FD62CFEBF13000105E1 /* HomeView.swift in Sources */,
 				F366AEF72CF8D62900D05D24 /* mockData.swift in Sources */,
+				F3BAB4052D083443006B8543 /* CusTextEditorView.swift in Sources */,
 				F366AEEA2CF8A31600D05D24 /* MeViewModel.swift in Sources */,
 				F366AECE2CF8877400D05D24 /* ReforestApp.swift in Sources */,
 				F366AEF52CF8C1E500D05D24 /* EditQuestionView.swift in Sources */,
