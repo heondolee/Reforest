@@ -3,6 +3,7 @@ import UIKit
 
 struct MarkdownEditorView: UIViewRepresentable {
     @Binding var text: String
+    @Binding var overlays: [OverlayItem]
     @ObservedObject var viewModel: MeViewModel
     var categoryID: UUID
     var contentID: UUID
@@ -97,6 +98,28 @@ struct MarkdownEditorView: UIViewRepresentable {
 
         func textViewDidChange(_ textView: UITextView) {
             parent.text = textView.text
+            updateOverlays(for: textView)
+        }
+
+        func updateOverlays(for textView: UITextView) {
+            var newOverlays: [OverlayItem] = []
+            let lines = textView.text.components(separatedBy: "\n")
+
+            for (index, line) in lines.enumerated() {
+                let indentLevel = line.prefix(while: { $0 == "\t" }).count
+                let positionY = CGFloat(index) * 20.0 + 20.0
+                let positionX = CGFloat(indentLevel) * 20.0 + 10.0
+
+                // 화살표 추가
+                newOverlays.append(OverlayItem(position: CGPoint(x: positionX, y: positionY), isArrow: true))
+
+                // 세로 줄 추가
+                if indentLevel > 0 {
+                    newOverlays.append(OverlayItem(position: CGPoint(x: positionX - 10, y: positionY + 10), isArrow: false))
+                }
+            }
+
+            parent.overlays = newOverlays  // 수정된 부분
         }
 
         func makeToolbar() -> UIToolbar {
@@ -202,8 +225,8 @@ struct MarkdownEditorView: UIViewRepresentable {
             }
         }
 
-        func insertListItem(style: ListStyle, prefix: String) {
-    guard let textView = findFirstResponder(),
+    func insertListItem(style: ListStyle, prefix: String) {
+        guard let textView = findFirstResponder(),
           let selectedRange = textView.selectedTextRange,
           let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
           let lineText = textView.text(in: lineRange) else { return }
@@ -251,25 +274,75 @@ struct MarkdownEditorView: UIViewRepresentable {
 }
 
 
-        @objc func indentText() {
-            guard let textView = findFirstResponder(),
-                let selectedRange = textView.selectedTextRange,
-                let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
-                let lineText = textView.text(in: lineRange) else { return }
+@objc func indentText() {
+    guard let textView = findFirstResponder(),
+          let selectedRange = textView.selectedTextRange,
+          let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
+          let lineText = textView.text(in: lineRange) else { return }
 
-            let indentedLine = "\t" + lineText
-            textView.replace(lineRange, withText: indentedLine)
+    let indentedLine = "\t" + lineText
+    textView.replace(lineRange, withText: indentedLine)
+
+    // 들여쓰기를 적용한 후, 리스트 번호를 업데이트
+    updateListNumbers(in: textView)
+}
+
+@objc func outdentText() {
+    guard let textView = findFirstResponder(),
+          let selectedRange = textView.selectedTextRange,
+          let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
+          let lineText = textView.text(in: lineRange) else { return }
+
+    let updatedLine = lineText.replacingOccurrences(of: #"^(?:\t| {4})"#, with: "", options: .regularExpression)
+    textView.replace(lineRange, withText: updatedLine)
+
+    // 내어쓰기를 적용한 후, 리스트 번호를 업데이트
+    updateListNumbers(in: textView)
+}
+
+func updateListNumbers(in textView: UITextView) {
+    let lines = textView.text.components(separatedBy: "\n")
+    var updatedLines = [String]()
+    var numberStack: [Int] = []
+    var indentStack: [Int] = []
+
+    for line in lines {
+        let indentLevel = line.prefix(while: { $0 == "\t" }).count
+
+        // 현재 indentLevel에 맞는 번호 설정
+        while indentStack.count > indentLevel {
+            indentStack.removeLast()
+            numberStack.removeLast()
         }
 
-        @objc func outdentText() {
-            guard let textView = findFirstResponder(),
-                let selectedRange = textView.selectedTextRange,
-                let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
-                let lineText = textView.text(in: lineRange) else { return }
+        if let match = line.range(of: #"^(\t*)(\d+\.)"#, options: .regularExpression) {
+            if indentStack.last == indentLevel {
+                // 동일한 레벨이면 번호 증가
+                numberStack[numberStack.count - 1] += 1
+            } else {
+                // 새로운 레벨이면 1부터 시작
+                numberStack.append(1)
+                indentStack.append(indentLevel)
+            }
 
-            let updatedLine = lineText.replacingOccurrences(of: #"^(?:\t| {4})"#, with: "", options: .regularExpression)
-            textView.replace(lineRange, withText: updatedLine)
+            let newNumber = "\(numberStack.last!)."
+
+            if let matchRange = line.range(of: #"^(\t*)(\d+\.)"#, options: .regularExpression) {
+                let newNumber = "\(numberStack.last!)."
+                let indent = String(line[matchRange].prefix { $0 == "\t" })  // 들여쓰기 부분 추출
+                let updatedLine = line.replacingCharacters(in: matchRange, with: "\(indent)\(newNumber)")
+                updatedLines.append(updatedLine)
+            }
+            
+        } else {
+            // 리스트가 아닌 경우 그대로 추가
+            updatedLines.append(line)
         }
+    }
+
+    textView.text = updatedLines.joined(separator: "\n")
+}
+
 
         @objc func dismissKeyboard() {
             findFirstResponder()?.resignFirstResponder()
@@ -295,14 +368,38 @@ extension UIView {
     }
 }
 
+// 오버레이 아이템 구조체
+struct OverlayItem: Identifiable {
+    let id = UUID()
+    let position: CGPoint
+    let isArrow: Bool
+}
+
+// SwiftUI View
 struct PlanView: View {
     @StateObject var viewModel = MeViewModel(meCategoryModelList: [], profile: ProfileModel(name: "User", value: "0"))
     @State private var text = ""
+    @State private var overlays: [OverlayItem] = []
 
     var body: some View {
-        VStack {
-            MarkdownEditorView(text: $text, viewModel: viewModel, categoryID: UUID(), contentID: UUID())
+        ZStack(alignment: .topLeading) {
+            // 텍스트 뷰
+            MarkdownEditorView(text: $text, overlays: $overlays, viewModel: viewModel, categoryID: UUID(), contentID: UUID())
                 .padding()
+
+            // 오버레이로 화살표와 줄 표시
+            ForEach(overlays) { item in
+                if item.isArrow {
+                    Image(systemName: "chevron.down")
+                        .foregroundColor(.gray)
+                        .position(item.position)
+                } else {
+                    Rectangle()
+                        .fill(Color.gray)
+                        .frame(width: 1, height: 20)
+                        .position(item.position)
+                }
+            }
         }
         .navigationTitle("Markdown Editor")
     }
