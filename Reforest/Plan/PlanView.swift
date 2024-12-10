@@ -110,16 +110,25 @@ struct MarkdownEditorView: UIViewRepresentable {
                 let positionY = CGFloat(index) * 20.0 + 20.0
                 let positionX = CGFloat(indentLevel) * 20.0 + 10.0
 
-                // 화살표 추가
-                newOverlays.append(OverlayItem(position: CGPoint(x: positionX, y: positionY), isArrow: true))
+                // 자식 노드가 있는지 확인 (다음 줄의 들여쓰기 수준이 현재보다 깊은 경우)
+                let hasChild = (index + 1 < lines.count) && lines[index + 1].prefix(while: { $0 == "\t" }).count > indentLevel
 
-                // 세로 줄 추가
-                if indentLevel > 0 {
-                    newOverlays.append(OverlayItem(position: CGPoint(x: positionX - 10, y: positionY + 10), isArrow: false))
+                if hasChild {
+                    // 화살표 추가
+                    newOverlays.append(OverlayItem(position: CGPoint(x: positionX, y: positionY), isArrow: true))
+
+                    // 자식 노드의 개수 확인
+                    let childCount = lines[(index + 1)...].prefix { $0.prefix(while: { $0 == "\t" }).count > indentLevel }.count
+
+                    // 세로 줄의 길이를 자식 노드의 개수에 맞게 설정 (20.0은 각 줄의 높이)
+                    let lineHeight = CGFloat(childCount) * 20.0
+
+                    // 세로 줄 추가 (들여쓰기 레벨이 0이어도 세로 줄을 추가)
+                    newOverlays.append(OverlayItem(position: CGPoint(x: positionX - 10, y: positionY + lineHeight / 2), isArrow: false, height: lineHeight))
                 }
             }
 
-            parent.overlays = newOverlays  // 수정된 부분
+            parent.overlays = newOverlays
         }
 
         func makeToolbar() -> UIToolbar {
@@ -373,6 +382,7 @@ struct OverlayItem: Identifiable {
     let id = UUID()
     let position: CGPoint
     let isArrow: Bool
+    var height: CGFloat = 20.0  // 기본 높이를 20.0으로 설정
 }
 
 // SwiftUI View
@@ -396,11 +406,17 @@ struct PlanView: View {
                 } else {
                     Rectangle()
                         .fill(Color.gray)
-                        .frame(width: 1, height: 20)
+                        .frame(width: 1, height: item.height)
                         .position(item.position)
                 }
             }
         }
         .navigationTitle("Markdown Editor")
+    }
+}
+
+struct PlanView_Previews: PreviewProvider {
+    static var previews: some View {
+        PlanView()
     }
 }
