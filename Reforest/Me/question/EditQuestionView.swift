@@ -144,147 +144,24 @@ extension EditQuestionView {
 
     //subLine: SubLineModel의 바인딩입니다. 바인딩을 사용하면 값이 변경될 때 뷰가 자동으로 업데이트됩니다.
     private func renderSubLine(subLine: Binding<SubLineModel>) -> AnyView {
+        let sublineID = subLine.wrappedValue.id
+
         return AnyView(
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(alignment: .top) {
-                    // 들여쓰기 적용된 리스트 스타일 아이콘
-                    HStack {
-                        if subLine.wrappedValue.listStyle == .checkbox {
-                            Image(systemName: subLine.wrappedValue.isChecked ? "checkmark.square.fill" : "square")
-                                .onTapGesture {
-                                    toggleCheckBox(for: subLine)
-                                }
-                            Text("\(subLine.wrappedValue.indentLevel)체크")
-                        } else if subLine.wrappedValue.listStyle == .numbered {
-                            Text("\(subLine.wrappedValue.indentLevel)숫자")
-                        } else if subLine.wrappedValue.listStyle == .bulleted {
-                            Circle().frame(width: 8, height: 8)
-                        }
-                    }
-                    .padding(.leading, CGFloat(subLine.wrappedValue.indentLevel) * 20) // 리스트 스타일 아이콘 들여쓰기
-
-                    // 텍스트 필드에 들여쓰기 적용
-                    TextField(
-                        "답변을 입력하세요.",
-                        text: subLine.text
-                    )
-                    .font(Font.system(size: 14))
-                    .padding(.leading, 4) // 아이콘과 텍스트 사이의 간격
-                    .onChange(of: subLine.wrappedValue.text) { oldValue, newValue in
-                        handleTextChange(for: subLine, newText: newValue)
-                    }
-                    .onSubmit {
-                        addNewSubLine(after: subLine)
-                    }
-                }
-                .padding(.vertical, 4)
-
-                // 하위 SubLine 렌더링
-                ForEach(subLine.wrappedValue.subLines.indices, id: \.self) { childIndex in
-                    renderSubLine(
-                        subLine: Binding(
-                            get: { subLine.wrappedValue.subLines[childIndex] },
-                            set: { subLine.wrappedValue.subLines[childIndex] = $0 }
-                        )
-                    )
-                }
-            }
+            CusTextEditorView(
+                viewModel: vm,
+                text: subLine.text,
+                categoryID: meCategoryID,
+                contentID: content.id,
+                sublineID: sublineID
+            )
         )
-    }
-
-    
-    
-    private func handleTextChange(for subLine: Binding<SubLineModel>, newText: String) {
-        if newText.isEmpty {
-            subLine.wrappedValue.listStyle = .none
-            subLine.wrappedValue.isChecked = false // 체크박스 상태 초기화
-        }
-    }
-    
-    private func addNewSubLine(after subLine: Binding<SubLineModel>) {
-        let newSubLine = SubLineModel(
-            id: UUID(),
-            text: "",
-            indentLevel: subLine.wrappedValue.indentLevel,
-            listStyle: subLine.wrappedValue.listStyle,
-            isChecked: false,
-            subLines: []
-        )
-        subLine.wrappedValue.subLines.append(newSubLine)
-    }
-    
-    private func toggleCheckBox(for subLine: Binding<SubLineModel>) {
-        guard subLine.wrappedValue.listStyle == .checkbox else { return }
-        subLine.wrappedValue.isChecked.toggle()
-        
-        // 업데이트를 ViewModel에 반영
-        if let categoryIndex = vm.meCategoryModelList.firstIndex(where: { category in
-            category.contentList.contains(where: { content in
-                content.subLines.contains(where: { $0.id == subLine.wrappedValue.id })
-            })
-        }),
-           let contentIndex = vm.meCategoryModelList[categoryIndex].contentList.firstIndex(where: { content in
-               content.subLines.contains(where: { $0.id == subLine.wrappedValue.id })
-           }),
-           let subLineIndex = vm.meCategoryModelList[categoryIndex].contentList[contentIndex].subLines.firstIndex(where: { $0.id == subLine.wrappedValue.id }) {
-            
-            vm.meCategoryModelList[categoryIndex].contentList[contentIndex].subLines[subLineIndex].isChecked.toggle()
-        }
-    }
-
-    private func KeyboardToolbar() -> some View {
-        HStack {
-            Button(action: { tabIndent() }) {
-                Image(systemName: "arrow.right.to.line")
-            }
-            Button(action: { untabIndent() }) {
-                Image(systemName: "arrow.left.to.line")
-            }
-            Spacer()
-            Button(action: { toggleListStyle(.checkbox) }) {
-                Image(systemName: "checklist")
-            }
-            Button(action: { toggleListStyle(.numbered) }) {
-                Image(systemName: "list.number")
-            }
-            Button(action: { toggleListStyle(.bulleted) }) {
-                Image(systemName: "list.bullet")
-            }
-            Button(action: { isKeyBoardOn = false }) {
-                Image(systemName: "keyboard.chevron.compact.down")
-            }
-        }
-        .padding()
-        .background(Color(UIColor.systemGray6))
-    }
-    
-    private func tabIndent() {
-        if let selectedLine = content.subLines.last,
-           let index = content.subLines.firstIndex(where: { $0.id == selectedLine.id }) {
-            content.subLines[index].indentLevel += 1
-        }
-    }
-
-    private func untabIndent() {
-        if let selectedLine = content.subLines.last,
-           selectedLine.indentLevel > 0,
-           let index = content.subLines.firstIndex(where: { $0.id == selectedLine.id }) {
-            content.subLines[index].indentLevel -= 1
-        }
-    }
-
-    private func toggleListStyle(_ style: ListStyle) {
-        if let selectedLine = content.subLines.last,
-           let index = content.subLines.firstIndex(where: { $0.id == selectedLine.id }) {
-            content.subLines[index].listStyle = content.subLines[index].listStyle == style ? .none : style
-        }
     }
 }
 
 #Preview {
     // 첫 번째 카테고리에서 첫 번째 ContentModel 선택
     if let firstCategory = mockData_meCategoryModelList.first,
-       let firstContent = firstCategory.contentList.first {
+        let firstContent = firstCategory.contentList.first {
         let mockViewModel = MeViewModel(
             meCategoryModelList: mockData_meCategoryModelList,
             profile: mockData_profile
