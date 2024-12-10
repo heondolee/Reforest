@@ -234,123 +234,123 @@ struct MarkdownEditorView: UIViewRepresentable {
             }
         }
 
-    func insertListItem(style: ListStyle, prefix: String) {
-        guard let textView = findFirstResponder(),
-          let selectedRange = textView.selectedTextRange,
-          let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
-          let lineText = textView.text(in: lineRange) else { return }
+        func insertListItem(style: ListStyle, prefix: String) {
+            guard let textView = findFirstResponder(),
+            let selectedRange = textView.selectedTextRange,
+            let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
+            let lineText = textView.text(in: lineRange) else { return }
 
-    let indentLevel = lineText.prefix(while: { $0 == "\t" }).count
-    let lines = textView.text.components(separatedBy: "\n")
-    let currentIndex = lines.firstIndex(of: lineText) ?? 0
+            let indentLevel = lineText.prefix(while: { $0 == "\t" }).count
+            let lines = textView.text.components(separatedBy: "\n")
+            let currentIndex = lines.firstIndex(of: lineText) ?? 0
 
-    var number = 1
+            var number = 1
 
-    // 이전 라인들 중에서 동일한 indentLevel의 마지막 숫자 찾기
-    for i in (0..<currentIndex).reversed() {
-        let previousLine = lines[i]
-        let previousIndentLevel = previousLine.prefix(while: { $0 == "\t" }).count
+            // 이전 라인들 중에서 동일한 indentLevel의 마지막 숫자 찾기
+            for i in (0..<currentIndex).reversed() {
+                let previousLine = lines[i]
+                let previousIndentLevel = previousLine.prefix(while: { $0 == "\t" }).count
 
-        // 현재 indentLevel과 동일하고, 부모 indentLevel이 다른 경우 찾기
-        if previousIndentLevel == indentLevel {
-            let numberPattern = #"^\s*\d+\."#
-            if let match = previousLine.range(of: numberPattern, options: .regularExpression) {
-                let matchedNumber = previousLine[match].trimmingCharacters(in: .whitespaces).dropLast()
-                if let previousNumber = Int(matchedNumber) {
-                    number = previousNumber + 1
+                // 현재 indentLevel과 동일하고, 부모 indentLevel이 다른 경우 찾기
+                if previousIndentLevel == indentLevel {
+                    let numberPattern = #"^\s*\d+\."#
+                    if let match = previousLine.range(of: numberPattern, options: .regularExpression) {
+                        let matchedNumber = previousLine[match].trimmingCharacters(in: .whitespaces).dropLast()
+                        if let previousNumber = Int(matchedNumber) {
+                            number = previousNumber + 1
+                        }
+                    }
+                    break
+                } else if previousIndentLevel < indentLevel {
+                    // 부모가 다르면 숫자를 1로 설정하고 종료
+                    number = 1
+                    break
                 }
             }
-            break
-        } else if previousIndentLevel < indentLevel {
-            // 부모가 다르면 숫자를 1로 설정하고 종료
-            number = 1
-            break
-        }
-    }
 
-    let newPrefix: String
-    switch style {
-    case .numbered:
-        newPrefix = "\(number). "
-    default:
-        newPrefix = prefix
-    }
-
-    // 탭이나 공백을 포함한 들여쓰기를 유지하고 리스트 기호만 교체
-    let updatedLine = lineText.replacingOccurrences(of: #"^([\t ]*)(• |\d+\.|☐ |☑ )?"#, with: "$1" + newPrefix, options: .regularExpression)
-
-    textView.replace(lineRange, withText: updatedLine)
-}
-
-
-@objc func indentText() {
-    guard let textView = findFirstResponder(),
-          let selectedRange = textView.selectedTextRange,
-          let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
-          let lineText = textView.text(in: lineRange) else { return }
-
-    let indentedLine = "\t" + lineText
-    textView.replace(lineRange, withText: indentedLine)
-
-    // 들여쓰기를 적용한 후, 리스트 번호를 업데이트
-    updateListNumbers(in: textView)
-}
-
-@objc func outdentText() {
-    guard let textView = findFirstResponder(),
-          let selectedRange = textView.selectedTextRange,
-          let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
-          let lineText = textView.text(in: lineRange) else { return }
-
-    let updatedLine = lineText.replacingOccurrences(of: #"^(?:\t| {4})"#, with: "", options: .regularExpression)
-    textView.replace(lineRange, withText: updatedLine)
-
-    // 내어쓰기를 적용한 후, 리스트 번호를 업데이트
-    updateListNumbers(in: textView)
-}
-
-func updateListNumbers(in textView: UITextView) {
-    let lines = textView.text.components(separatedBy: "\n")
-    var updatedLines = [String]()
-    var numberStack: [Int] = []
-    var indentStack: [Int] = []
-
-    for line in lines {
-        let indentLevel = line.prefix(while: { $0 == "\t" }).count
-
-        // 현재 indentLevel에 맞는 번호 설정
-        while indentStack.count > indentLevel {
-            indentStack.removeLast()
-            numberStack.removeLast()
-        }
-
-        if let match = line.range(of: #"^(\t*)(\d+\.)"#, options: .regularExpression) {
-            if indentStack.last == indentLevel {
-                // 동일한 레벨이면 번호 증가
-                numberStack[numberStack.count - 1] += 1
-            } else {
-                // 새로운 레벨이면 1부터 시작
-                numberStack.append(1)
-                indentStack.append(indentLevel)
+            let newPrefix: String
+            switch style {
+            case .numbered:
+                newPrefix = "\(number). "
+            default:
+                newPrefix = prefix
             }
 
-            let newNumber = "\(numberStack.last!)."
+            // 탭이나 공백을 포함한 들여쓰기를 유지하고 리스트 기호만 교체
+            let updatedLine = lineText.replacingOccurrences(of: #"^([\t ]*)(• |\d+\.|☐ |☑ )?"#, with: "$1" + newPrefix, options: .regularExpression)
 
-            if let matchRange = line.range(of: #"^(\t*)(\d+\.)"#, options: .regularExpression) {
-                let newNumber = "\(numberStack.last!)."
-                let indent = String(line[matchRange].prefix { $0 == "\t" })  // 들여쓰기 부분 추출
-                let updatedLine = line.replacingCharacters(in: matchRange, with: "\(indent)\(newNumber)")
-                updatedLines.append(updatedLine)
-            }
-            
-        } else {
-            // 리스트가 아닌 경우 그대로 추가
-            updatedLines.append(line)
+            textView.replace(lineRange, withText: updatedLine)
         }
-    }
 
-    textView.text = updatedLines.joined(separator: "\n")
-}
+
+        @objc func indentText() {
+            guard let textView = findFirstResponder(),
+                let selectedRange = textView.selectedTextRange,
+                let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
+                let lineText = textView.text(in: lineRange) else { return }
+
+            let indentedLine = "\t" + lineText
+            textView.replace(lineRange, withText: indentedLine)
+
+            // 들여쓰기를 적용한 후, 리스트 번호를 업데이트
+            updateListNumbers(in: textView)
+        }
+
+        @objc func outdentText() {
+            guard let textView = findFirstResponder(),
+                let selectedRange = textView.selectedTextRange,
+                let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
+                let lineText = textView.text(in: lineRange) else { return }
+
+            let updatedLine = lineText.replacingOccurrences(of: #"^(?:\t| {4})"#, with: "", options: .regularExpression)
+            textView.replace(lineRange, withText: updatedLine)
+
+            // 내어쓰기를 적용한 후, 리스트 번호를 업데이트
+            updateListNumbers(in: textView)
+        }
+
+        func updateListNumbers(in textView: UITextView) {
+            let lines = textView.text.components(separatedBy: "\n")
+            var updatedLines = [String]()
+            var numberStack: [Int] = []
+            var indentStack: [Int] = []
+
+            for line in lines {
+                let indentLevel = line.prefix(while: { $0 == "\t" }).count
+
+                // 현재 indentLevel에 맞는 번호 설정
+                while indentStack.count > indentLevel {
+                    indentStack.removeLast()
+                    numberStack.removeLast()
+                }
+
+                if let match = line.range(of: #"^(\t*)(\d+\.)"#, options: .regularExpression) {
+                    if indentStack.last == indentLevel {
+                        // 동일한 레벨이면 번호 증가
+                        numberStack[numberStack.count - 1] += 1
+                    } else {
+                        // 새로운 레벨이면 1부터 시작
+                        numberStack.append(1)
+                        indentStack.append(indentLevel)
+                    }
+
+                    let newNumber = "\(numberStack.last!)."
+
+                    if let matchRange = line.range(of: #"^(\t*)(\d+\.)"#, options: .regularExpression) {
+                        let newNumber = "\(numberStack.last!)."
+                        let indent = String(line[matchRange].prefix { $0 == "\t" })  // 들여쓰기 부분 추출
+                        let updatedLine = line.replacingCharacters(in: matchRange, with: "\(indent)\(newNumber)")
+                        updatedLines.append(updatedLine)
+                    }
+                    
+                } else {
+                    // 리스트가 아닌 경우 그대로 추가
+                    updatedLines.append(line)
+                }
+            }
+
+            textView.text = updatedLines.joined(separator: "\n")
+        }
 
 
         @objc func dismissKeyboard() {
