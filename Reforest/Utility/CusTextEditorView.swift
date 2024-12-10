@@ -17,6 +17,7 @@ struct MarkdownEditorView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> UITextView {
         let textView = UITextView()
+        context.coordinator.textView = textView // Coordinator에 UITextView 저장
         textView.font = UIFont.systemFont(ofSize: 16)
         textView.delegate = context.coordinator
         textView.inputAccessoryView = context.coordinator.makeToolbar()
@@ -45,6 +46,7 @@ struct MarkdownEditorView: UIViewRepresentable {
         var viewModel: MeViewModel
         var categoryID: UUID
         var contentID: UUID
+        weak var textView: UITextView? // UITextView를 저장할 약한 참조
 
         init(_ parent: MarkdownEditorView, viewModel: MeViewModel, categoryID: UUID, contentID: UUID) {
             self.parent = parent
@@ -250,39 +252,59 @@ func updateOverlays(for textView: UITextView) {
         }
 
         func insertListItem(style: ListStyle, prefix: String) {
-            guard let textView = findFirstResponder(),
-            let selectedRange = textView.selectedTextRange,
-            let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
-            let lineText = textView.text(in: lineRange) else { return }
+            // findFirstResponder 확인
+            guard let textView = findFirstResponder() else {
+                print("⚠️ 텍스트 뷰를 찾을 수 없습니다.")
+                return
+            }
+            print("✅ 텍스트 뷰를 성공적으로 찾았습니다.")
 
+            // 선택된 범위와 라인 범위 확인
+            guard let selectedRange = textView.selectedTextRange,
+                let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
+                let lineText = textView.text(in: lineRange) else {
+                print("⚠️ 선택된 범위나 라인 텍스트를 가져오지 못했습니다.")
+                return
+            }
+
+            print("📝 선택된 라인 텍스트: '\(lineText)'")
+
+            // 들여쓰기 수준 확인
             let indentLevel = lineText.prefix(while: { $0 == "\t" }).count
+            print("🔹 들여쓰기 수준: \(indentLevel)")
+
+            // 현재 라인의 인덱스 확인
             let lines = textView.text.components(separatedBy: "\n")
             let currentIndex = lines.firstIndex(of: lineText) ?? 0
+            print("🔹 현재 라인 인덱스: \(currentIndex)")
 
             var number = 1
 
-            // 이전 라인들 중에서 동일한 indentLevel의 마지막 숫자 찾기
+            // 이전 라인에서 동일한 들여쓰기 수준의 마지막 숫자 찾기
             for i in (0..<currentIndex).reversed() {
                 let previousLine = lines[i]
                 let previousIndentLevel = previousLine.prefix(while: { $0 == "\t" }).count
 
-                // 현재 indentLevel과 동일하고, 부모 indentLevel이 다른 경우 찾기
+                print("🔍 이전 라인: '\(previousLine)', 들여쓰기 수준: \(previousIndentLevel)")
+
                 if previousIndentLevel == indentLevel {
                     let numberPattern = #"^\s*\d+\."#
                     if let match = previousLine.range(of: numberPattern, options: .regularExpression) {
                         let matchedNumber = previousLine[match].trimmingCharacters(in: .whitespaces).dropLast()
                         if let previousNumber = Int(matchedNumber) {
                             number = previousNumber + 1
+                            print("🔢 이전 번호: \(previousNumber), 다음 번호: \(number)")
                         }
                     }
                     break
                 } else if previousIndentLevel < indentLevel {
-                    // 부모가 다르면 숫자를 1로 설정하고 종료
                     number = 1
+                    print("🔄 부모가 다르므로 번호를 1로 초기화합니다.")
                     break
                 }
             }
 
+            // 새 프리픽스 설정
             let newPrefix: String
             switch style {
             case .numbered:
@@ -291,12 +313,15 @@ func updateOverlays(for textView: UITextView) {
                 newPrefix = prefix
             }
 
-            // 탭이나 공백을 포함한 들여쓰기를 유지하고 리스트 기호만 교체
+            print("🆕 새 프리픽스: '\(newPrefix)'")
+
+            // 라인 업데이트
             let updatedLine = lineText.replacingOccurrences(of: #"^([\t ]*)(• |\d+\.|☐ |☑ )?"#, with: "$1" + newPrefix, options: .regularExpression)
+            print("✅ 업데이트된 라인: '\(updatedLine)'")
 
             textView.replace(lineRange, withText: updatedLine)
+            print("✅ 라인 업데이트가 완료되었습니다.")
         }
-
 
         @objc func indentText() {
             guard let textView = findFirstResponder(),
@@ -373,7 +398,7 @@ func updateOverlays(for textView: UITextView) {
         }
 
         func findFirstResponder() -> UITextView? {
-            UIApplication.shared.windows.first { $0.isKeyWindow }?.rootViewController?.view.findTextView()
+            return self.textView
         }
     }
 }
@@ -381,6 +406,7 @@ func updateOverlays(for textView: UITextView) {
 extension UIView {
     func findTextView() -> UITextView? {
         if let textView = self as? UITextView {
+            print("✅ UITextView를 발견했습니다: \(textView)")
             return textView
         }
         for subview in subviews {
@@ -388,9 +414,11 @@ extension UIView {
                 return found
             }
         }
+        print("⚠️ \(self)에서 UITextView를 찾지 못했습니다.")
         return nil
     }
 }
+
 
 // 오버레이 아이템 구조체
 struct OverlayItem: Identifiable {
