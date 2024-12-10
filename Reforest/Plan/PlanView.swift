@@ -13,6 +13,9 @@ struct MarkdownEditorView: UIViewRepresentable {
         textView.font = UIFont.systemFont(ofSize: 16)
         textView.delegate = context.coordinator
         textView.inputAccessoryView = context.coordinator.makeToolbar()
+
+        // 텍스트 뷰에 패딩 추가
+        textView.textContainerInset = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
         
         // 탭 제스처 추가 (기본 터치 이벤트와 함께 동작하도록 설정)
         let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(context.coordinator.handleTap(_:)))
@@ -101,35 +104,40 @@ struct MarkdownEditorView: UIViewRepresentable {
             updateOverlays(for: textView)
         }
 
-        func updateOverlays(for textView: UITextView) {
-            var newOverlays: [OverlayItem] = []
-            let lines = textView.text.components(separatedBy: "\n")
+func updateOverlays(for textView: UITextView) {
+    var newOverlays: [OverlayItem] = []
+    let lines = textView.text.components(separatedBy: "\n")
 
-            for (index, line) in lines.enumerated() {
-                let indentLevel = line.prefix(while: { $0 == "\t" }).count
-                let positionY = CGFloat(index) * 20.0 + 20.0
-                let positionX = CGFloat(indentLevel) * 20.0 + 10.0
+    // 각 라인의 높이와 들여쓰기 간격 설정
+    let lineHeight: CGFloat = 20.0
+    let indentWidth: CGFloat = 27.0
 
-                // 자식 노드가 있는지 확인 (다음 줄의 들여쓰기 수준이 현재보다 깊은 경우)
-                let hasChild = (index + 1 < lines.count) && lines[index + 1].prefix(while: { $0 == "\t" }).count > indentLevel
+    for (index, line) in lines.enumerated() {
+        let indentLevel = line.prefix(while: { $0 == "\t" }).count
+        let positionY = CGFloat(index) * lineHeight + 43.0
+        let positionX = CGFloat(indentLevel) * indentWidth + 25.0
 
-                if hasChild {
-                    // 화살표 추가
-                    newOverlays.append(OverlayItem(position: CGPoint(x: positionX, y: positionY), isArrow: true))
+        // 자식 노드가 있는지 확인 (다음 줄의 들여쓰기 수준이 현재보다 깊은 경우)
+        let hasChild = (index + 1 < lines.count) && lines[index + 1].prefix(while: { $0 == "\t" }).count > indentLevel
 
-                    // 자식 노드의 개수 확인
-                    let childCount = lines[(index + 1)...].prefix { $0.prefix(while: { $0 == "\t" }).count > indentLevel }.count
+        if hasChild {
+            // 화살표 추가 (텍스트와 정렬되도록 위치 조정)
+            newOverlays.append(OverlayItem(position: CGPoint(x: positionX, y: positionY - 5.0), isArrow: true))
 
-                    // 세로 줄의 길이를 자식 노드의 개수에 맞게 설정 (20.0은 각 줄의 높이)
-                    let lineHeight = CGFloat(childCount) * 20.0
+            // 자식 노드의 개수 확인
+            let childCount = lines[(index + 1)...].prefix { $0.prefix(while: { $0 == "\t" }).count > indentLevel }.count
 
-                    // 세로 줄 추가 (들여쓰기 레벨이 0이어도 세로 줄을 추가)
-                    newOverlays.append(OverlayItem(position: CGPoint(x: positionX - 10, y: positionY + lineHeight / 2), isArrow: false, height: lineHeight))
-                }
-            }
+            // 세로 줄의 길이를 자식 노드의 개수에 맞게 설정
+            let verticalLineHeight = CGFloat(childCount) * lineHeight
 
-            parent.overlays = newOverlays
+            // 세로 줄 추가 (화살표의 위치에서 시작하도록 설정)
+            newOverlays.append(OverlayItem(position: CGPoint(x: positionX, y: positionY + verticalLineHeight / 2 + 2), isArrow: false, height: verticalLineHeight))
         }
+    }
+
+    parent.overlays = newOverlays
+}
+
 
         func makeToolbar() -> UIToolbar {
             let toolbar = UIToolbar()
