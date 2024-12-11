@@ -175,7 +175,24 @@ extension EditQuestionView {
         print("🔍 분리된 라인들: \(lines)")
 
         var stack: [(indentLevel: Int, subLine: SubLineModel)] = []
-        var topLevelSubLines: [SubLineModel] = []  // indentLevel이 0인 항목들을 저장할 배열
+        var topLevelSubLines: [SubLineModel] = []
+
+        func processStack() {
+            var tempStack: [(indentLevel: Int, subLine: SubLineModel)] = []
+
+            while let last = stack.popLast() {
+                if let previous = stack.last, previous.indentLevel < last.indentLevel {
+                    stack[stack.count - 1].subLine.subLines.append(last.subLine)
+                    stack[stack.count - 1].subLine.subLines.append(contentsOf: tempStack.map { $0.subLine })
+                    tempStack.removeAll()
+                } else {
+                    tempStack.insert(last, at: 0)
+                }
+            }
+
+            // 남아있는 항목들을 최상위에 추가
+            topLevelSubLines.append(contentsOf: tempStack.map { $0.subLine })
+        }
 
         for line in lines {
             let indentLevel = line.prefix(while: { $0 == "\t" }).count
@@ -196,36 +213,18 @@ extension EditQuestionView {
 
             print("🆕 새 SubLine 생성: \(newSubLine)")
 
-            // indentLevel이 현재 라인보다 같거나 큰 항목들을 스택에서 제거
-            while let last = stack.last, last.indentLevel >= indentLevel {
-                print("🗑 스택에서 제거된 항목: \(last)")
-                stack.removeLast()
+            // 스택에서 꺼낸 모델의 레벨이 현재 모델의 레벨보다 작거나 같으면 부모-자식 관계를 구성
+            if let last = stack.last, last.indentLevel >= indentLevel {
+                processStack()
             }
 
-            // indentLevel이 0이면 topLevelSubLines에 추가
-            if indentLevel == 0 {
-                topLevelSubLines.append(newSubLine)
-            } else {
-                // indentLevel이 0보다 큰 경우, 스택의 마지막 항목에 subLine을 추가
-                if var last = stack.popLast() {
-                    print("🔄 스택에서 꺼낸 마지막 항목: \(last)")
-                    last.subLine.subLines.append(newSubLine)
-                    print("✅ 마지막 항목에 새 SubLine 추가: \(last.subLine.subLines)")
-                    stack.append(last)
-                    print("📥 수정된 항목을 스택에 다시 추가: \(last)")
-                }
-            }
-
-            // 새로 생성된 SubLine을 스택에 추가
+            // 현재 모델을 스택에 추가
             stack.append((indentLevel, newSubLine))
             print("📦 스택에 새 SubLine 추가: \(newSubLine)")
-            print("🧱 현재 스택 상태: \(stack)")
         }
 
-        print("\n🔎 스택 최종 상태:")
-        for (index, item) in stack.enumerated() {
-            print("\(index): 들여쓰기 레벨: \(item.indentLevel), SubLine: \(item.subLine)")
-        }
+        // 마지막 남은 스택 처리
+        processStack()
 
         print("\n✅ 최종 생성된 SubLines: \(topLevelSubLines)")
         return topLevelSubLines
