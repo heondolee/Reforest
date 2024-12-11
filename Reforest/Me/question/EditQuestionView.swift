@@ -84,9 +84,11 @@ extension EditQuestionView {
                         question.answer.subLines = parsedSubLines  // 파싱된 결과를 저장
 
                         if isThisEditView {
+                            print("🔧 수정된 질문: \(question)")
                             vm.updateQuestion(categoryID: meCategoryID, questionID: question.id, editedQuestion: question)
                         } else {
                             vm.addQuestion(categoryID: meCategoryID, newQuestion: question)
+                            print("➕ 추가된 질문: \(question)")
                         }
                         dismiss()
                     }
@@ -229,17 +231,19 @@ extension EditQuestionView {
                 viewModel: vm,
                 text: Binding(
                     get: {
-                        tempText = combineSubLines(question.answer.subLines)  // 초기 텍스트 설정
-                        return tempText
+                        tempText  // 상태를 반환만 함
                     },
                     set: { newValue in
-                        tempText = newValue  // 텍스트가 변경될 때 임시 변수에 저장
+                        tempText = newValue  // 입력된 텍스트를 상태에 저장
                     }
                 ),
                 categoryID: meCategoryID,
                 questionID: question.id,
                 answerID: question.answer.id
             )
+            .onAppear {
+                tempText = combineSubLines(question.answer.subLines)  // 초기 텍스트 설정
+            }
         )
     }
 }
