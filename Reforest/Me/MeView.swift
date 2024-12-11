@@ -46,12 +46,13 @@ struct MeView: View {
                 self.selectedMeCategory = vm.meCategoryModelList.first
             }
         }
-        .onChange(of: vm.meCategoryModelList) {
-            // 새 카테고리가 추가되었을 때 디폴트로 첫 번째 카테고리를 선택
-            if selectedMeCategory == nil, !vm.meCategoryModelList.isEmpty {
-                self.selectedMeCategory = vm.meCategoryModelList.first
+        .onChange(of: vm.meCategoryModelList) { newCategoryList in
+            // 새 카테고리가 추가된 직후, 첫 번째 카테고리를 선택
+            if let firstCategory = newCategoryList.first {
+                self.selectedMeCategory = firstCategory
             }
         }
+
         .fullScreenCover(isPresented: $vm.isShowProfileView, content: {
             ProfileView(vm: vm)
         })
