@@ -85,9 +85,9 @@ extension EditQuestionView {
 
                         if isThisEditView {
                             print("🔧 수정된 질문: \(question)")
-                            vm.updateQuestion(categoryID: meCategoryID, questionID: question.id, editedQuestion: question)
+                            vm.updateQuestion(categoryID: vm.selectedCategory.id, questionID: question.id, editedQuestion: question)
                         } else {
-                            vm.addQuestion(categoryID: meCategoryID, newQuestion: question)
+                            vm.addQuestion(categoryID: vm.selectedCategory.id, newQuestion: question)
                             print("➕ 추가된 질문: \(question)")
                         }
                         dismiss()
@@ -104,40 +104,40 @@ extension EditQuestionView {
     }
     
     @ViewBuilder
-        private func CategorySelectorView() -> some View {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: .zero) {
-                    ForEach(vm.meCategoryModelList) { category in
-                        let isSelected = category.id == vm.selectedCategory.id
-                        Text(category.title)
-                            .font(.system(size: 17, weight: .bold))
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 5)
-                            .background(isSelected ? Color.white : Color.clear)
-                            .cornerRadius(100)
-                            .onTapGesture {
-                                vm.selectedCategory = category
-                            }
-                    }
+    private func CategorySelectorView() -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: .zero) {
+                ForEach(vm.meCategoryModelList) { category in
+                    let isSelected = category.id == vm.selectedCategory.id
+                    Text(category.title)
+                        .font(.system(size: 17, weight: .bold))
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 5)
+                        .background(isSelected ? Color.white : Color.clear)
+                        .cornerRadius(100)
+                        .onTapGesture {
+                            vm.selectedCategory = category
+                        }
                 }
-                .padding(8)
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(25)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 20)
-                .shadow(
-                    color: .black.opacity(0.1),
-                    radius: 8,
-                    x: 0, y: 3
-                )
             }
-            .onAppear {
-                // meCategoryID에 맞는 카테고리를 선택
-                if let matchingCategory = vm.meCategoryModelList.first(where: { $0.id == meCategoryID }) {
-                    vm.selectedCategory = matchingCategory
-                }
+            .padding(8)
+            .background(Color.gray.opacity(0.1))
+            .cornerRadius(25)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 20)
+            .shadow(
+                color: .black.opacity(0.1),
+                radius: 8,
+                x: 0, y: 3
+            )
+        }
+        .onAppear {
+            // meCategoryID에 맞는 카테고리를 선택
+            if let matchingCategory = vm.meCategoryModelList.first(where: { $0.id == meCategoryID }) {
+                vm.selectedCategory = matchingCategory
             }
         }
+    }
 
     private func ContentEditView() -> some View {
         VStack(alignment: .leading, spacing: 0) {
