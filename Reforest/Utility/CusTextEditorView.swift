@@ -23,9 +23,6 @@ struct MarkdownEditorView: UIViewRepresentable {
         textView.delegate = context.coordinator
         textView.inputAccessoryView = context.coordinator.makeToolbar()
 
-        // 텍스트 뷰에 패딩 추가
-        textView.textContainerInset = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
-        
         // 탭 제스처 추가 (기본 터치 이벤트와 함께 동작하도록 설정)
         let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(context.coordinator.handleTap(_:)))
         tapGesture.cancelsTouchesInView = false  // 기본 터치 이벤트를 취소하지 않도록 설정
@@ -462,7 +459,6 @@ struct CusTextEditorView: View {
                 questionID: questionID,  // 💖 contentID → questionID로 변경
                 answerID: answerID       // 💖 answerID 추가
             )
-            .padding()
 
             // 오버레이로 화살표와 줄 표시
             ForEach(overlays) { item in

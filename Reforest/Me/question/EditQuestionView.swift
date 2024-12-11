@@ -73,13 +73,18 @@ extension EditQuestionView {
                         dismiss()
                     }
                     .padding(.trailing, 30)
+
                 Button {
                     if question.headLine.isEmpty || question.answer.subLines.allSatisfy({ $0.text.isEmpty }) {
                         isShowEmptyAlert = true
                     } else {
+                        let combinedText = question.answer.subLines.map { String(repeating: "\t", count: $0.indentLevel) + $0.text }.joined(separator: "\n")
+
                         if isThisEditView {
-                            vm.updateQuestion(categoryID: meCategoryID, editQuestion: question)
+                            vm.updateQuestion(categoryID: meCategoryID, questionID: question.id, newText: combinedText)
                         } else {
+                            let parsedSubLines = vm.parseTextToSubLines(combinedText)
+                            question.answer.subLines = parsedSubLines
                             vm.addQuestion(categoryID: meCategoryID, newQuestion: question)
                         }
                         dismiss()
@@ -126,38 +131,80 @@ extension EditQuestionView {
     }
 
     private func ContentEditView() -> some View {
-    VStack(alignment: .leading, spacing: 6) {
-        TextField("질문을 입력하세요.", text: $question.headLine)
-            .font(.system(size: 16, weight: .heavy))
-            .focused($isKeyBoardOn)
-            .padding(.horizontal, 6)
-        
-        VStack(alignment: .leading, spacing: 8) {
-            renderAnswer(answer: $question.answer)  // 💖 renderSubLine 대신 renderAnswer 호출
+        VStack(alignment: .leading, spacing: 0) {
+            TextField("질문을 입력하세요.", text: $question.headLine)
+                .font(.system(size: 16, weight: .heavy))
+                .focused($isKeyBoardOn)
+                .padding(.horizontal, 6)
+            
+            renderAnswer(answer: $question.answer)  
         }
-        .padding(.horizontal, 10)
+        .whiteBoxWithShadow(lineSpacing: 0)
+        .padding(.horizontal, 20)
+        .padding(.bottom, 20)
     }
-    .whiteBoxWithShadow(lineSpacing: 8)
-    .padding(.horizontal, 20)
-}
+
+    private func combineSubLines(_ subLines: [SubLineModel]) -> String {
+        var combinedText = ""
+        
+        func addSubLineText(_ subLines: [SubLineModel], indentLevel: Int) {
+            for subLine in subLines {
+                let indent = String(repeating: "\t", count: indentLevel)
+                combinedText += "\(indent)\(subLine.text)\n"
+                addSubLineText(subLine.subLines, indentLevel: indentLevel + 1)
+            }
+        }
+
+        addSubLineText(subLines, indentLevel: 0)
+        return combinedText
+    }
+
+    private func parseTextToSubLines(_ text: String) -> [SubLineModel] {
+        let lines = text.components(separatedBy: "\n").filter { !$0.isEmpty }
+        var stack: [(indentLevel: Int, subLine: SubLineModel)] = []
+        
+        for line in lines {
+            let indentLevel = line.prefix(while: { $0 == "\t" }).count
+            let trimmedText = line.trimmingCharacters(in: .whitespacesAndNewlines)
+            let newSubLine = SubLineModel(
+                id: UUID(),
+                text: trimmedText,
+                indentLevel: indentLevel,
+                listStyle: .none,
+                isChecked: false,
+                subLines: []
+            )
+            
+            while let last = stack.last, last.indentLevel >= indentLevel {
+                stack.removeLast()
+            }
+            
+            if var last = stack.popLast() {  // 🔄 popLast()를 사용하여 마지막 항목을 변수로 꺼냄
+                last.subLine.subLines.append(newSubLine)  // 변경 가능
+                stack.append(last)  // 수정된 값을 다시 스택에 추가
+            } else {
+                stack.append((indentLevel, newSubLine))
+            }
+            
+            stack.append((indentLevel, newSubLine))
+        }
+        
+        return stack.first?.subLine.subLines ?? []
+    }
 
     private func renderAnswer(answer: Binding<AnswerModel>) -> AnyView {
-        let answerID = answer.wrappedValue.id  // 💖 answerID 사용
-
         return AnyView(
             CusTextEditorView(
                 viewModel: vm,
                 text: Binding(
-                    get: { answer.wrappedValue.subLines.first?.text ?? "" },
+                    get: { combineSubLines(question.answer.subLines) },
                     set: { newValue in
-                        if !answer.wrappedValue.subLines.isEmpty {
-                            answer.wrappedValue.subLines[0].text = newValue  // 💖 첫 번째 요소의 text를 수정
-                        }
+                        question.answer.subLines = parseTextToSubLines(newValue)
                     }
                 ),
                 categoryID: meCategoryID,
-                questionID: question.id,  // 💖 contentID → questionID로 변경
-                answerID: answerID
+                questionID: question.id,
+                answerID: question.answer.id
             )
         )
     }

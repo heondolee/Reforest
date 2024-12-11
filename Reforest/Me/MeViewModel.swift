@@ -29,13 +29,50 @@ class MeViewModel: ObservableObject {
         }
     }
     
-    func updateQuestion(categoryID: UUID, editQuestion: QuestionModel) {
-        guard let categoryIndex = meCategoryModelList.firstIndex(where: { $0.id == categoryID }),
-              let questionIndex = meCategoryModelList[categoryIndex].questionModelList.firstIndex(where: { $0.id == editQuestion.id }) else {
-            return
+    // 텍스트를 SubLineModel 계층 구조로 파싱하는 함수
+    func parseTextToSubLines(_ text: String) -> [SubLineModel] {
+        let lines = text.components(separatedBy: "\n")
+        var subLines: [SubLineModel] = []
+        var stack: [(indent: Int, subLine: SubLineModel)] = []
+
+        for line in lines {
+            let indentLevel = line.prefix(while: { $0 == "\t" }).count
+            let trimmedLine = line.trimmingCharacters(in: .whitespacesAndNewlines)
+
+            let subLine = SubLineModel(
+                id: UUID(),
+                text: trimmedLine,
+                indentLevel: indentLevel,
+                listStyle: .none,
+                isChecked: false,
+                subLines: []
+            )
+
+            // 계층 구조에 맞게 삽입
+            while let last = stack.last, last.indent >= indentLevel {
+                stack.removeLast()
+            }
+
+            if let last = stack.last {
+                stack[stack.count - 1].subLine.subLines.append(subLine)
+            } else {
+                subLines.append(subLine)
+            }
+
+            stack.append((indentLevel, subLine))
         }
 
-        self.meCategoryModelList[categoryIndex].questionModelList[questionIndex] = editQuestion
+        return subLines
+    }
+
+    // Question 업데이트 함수
+    func updateQuestion(categoryID: UUID, questionID: UUID, newText: String) {
+        if let categoryIndex = meCategoryModelList.firstIndex(where: { $0.id == categoryID }),
+           let questionIndex = meCategoryModelList[categoryIndex].questionModelList.firstIndex(where: { $0.id == questionID }) {
+
+            let parsedSubLines = parseTextToSubLines(newText)
+            meCategoryModelList[categoryIndex].questionModelList[questionIndex].answer.subLines = parsedSubLines
+        }
     }
 
     func addQuestion(categoryID: UUID, newQuestion: QuestionModel) {
