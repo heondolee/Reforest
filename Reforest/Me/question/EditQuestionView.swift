@@ -11,6 +11,8 @@ struct EditQuestionView: View {
     @FocusState private var isKeyBoardOn: Bool
     
     @FocusState private var focusedIndex: Int?
+
+    @State private var tempText: String = ""  // 임시로 텍스트를 저장할 상태 변수
     
     let isThisEditView: Bool
     let meCategoryID: UUID
@@ -75,16 +77,15 @@ extension EditQuestionView {
                     .padding(.trailing, 30)
 
                 Button {
-                    if question.headLine.isEmpty || question.answer.subLines.allSatisfy({ $0.text.isEmpty }) {
+                    if question.headLine.isEmpty || tempText.isEmpty {
                         isShowEmptyAlert = true
                     } else {
-                        let combinedText = question.answer.subLines.map { String(repeating: "\t", count: $0.indentLevel) + $0.text }.joined(separator: "\n")
+                        let parsedSubLines = parseTextToSubLines(tempText)  // 임시 텍스트를 파싱
+                        question.answer.subLines = parsedSubLines  // 파싱된 결과를 저장
 
                         if isThisEditView {
-                            vm.updateQuestion(categoryID: meCategoryID, questionID: question.id, newText: combinedText)
+                            vm.updateQuestion(categoryID: meCategoryID, questionID: question.id, editedQuestion: question)
                         } else {
-                            let parsedSubLines = vm.parseTextToSubLines(combinedText)
-                            question.answer.subLines = parsedSubLines
                             vm.addQuestion(categoryID: meCategoryID, newQuestion: question)
                         }
                         dismiss()
@@ -160,12 +161,22 @@ extension EditQuestionView {
     }
 
     private func parseTextToSubLines(_ text: String) -> [SubLineModel] {
+        print("🔹 입력된 텍스트:\n\(text)")
+
         let lines = text.components(separatedBy: "\n").filter { !$0.isEmpty }
+        print("🔍 분리된 라인들: \(lines)")
+
         var stack: [(indentLevel: Int, subLine: SubLineModel)] = []
-        
+        var topLevelSubLines: [SubLineModel] = []  // indentLevel이 0인 항목들을 저장할 배열
+
         for line in lines {
             let indentLevel = line.prefix(while: { $0 == "\t" }).count
             let trimmedText = line.trimmingCharacters(in: .whitespacesAndNewlines)
+
+            print("\n📝 현재 라인: '\(line)'")
+            print("↔️ 들여쓰기 레벨: \(indentLevel)")
+            print("✂️ 공백 제거된 텍스트: '\(trimmedText)'")
+
             let newSubLine = SubLineModel(
                 id: UUID(),
                 text: trimmedText,
@@ -174,22 +185,42 @@ extension EditQuestionView {
                 isChecked: false,
                 subLines: []
             )
-            
+
+            print("🆕 새 SubLine 생성: \(newSubLine)")
+
+            // indentLevel이 현재 라인보다 같거나 큰 항목들을 스택에서 제거
             while let last = stack.last, last.indentLevel >= indentLevel {
+                print("🗑 스택에서 제거된 항목: \(last)")
                 stack.removeLast()
             }
-            
-            if var last = stack.popLast() {  // 🔄 popLast()를 사용하여 마지막 항목을 변수로 꺼냄
-                last.subLine.subLines.append(newSubLine)  // 변경 가능
-                stack.append(last)  // 수정된 값을 다시 스택에 추가
+
+            // indentLevel이 0이면 topLevelSubLines에 추가
+            if indentLevel == 0 {
+                topLevelSubLines.append(newSubLine)
             } else {
-                stack.append((indentLevel, newSubLine))
+                // indentLevel이 0보다 큰 경우, 스택의 마지막 항목에 subLine을 추가
+                if var last = stack.popLast() {
+                    print("🔄 스택에서 꺼낸 마지막 항목: \(last)")
+                    last.subLine.subLines.append(newSubLine)
+                    print("✅ 마지막 항목에 새 SubLine 추가: \(last.subLine.subLines)")
+                    stack.append(last)
+                    print("📥 수정된 항목을 스택에 다시 추가: \(last)")
+                }
             }
-            
+
+            // 새로 생성된 SubLine을 스택에 추가
             stack.append((indentLevel, newSubLine))
+            print("📦 스택에 새 SubLine 추가: \(newSubLine)")
+            print("🧱 현재 스택 상태: \(stack)")
         }
-        
-        return stack.first?.subLine.subLines ?? []
+
+        print("\n🔎 스택 최종 상태:")
+        for (index, item) in stack.enumerated() {
+            print("\(index): 들여쓰기 레벨: \(item.indentLevel), SubLine: \(item.subLine)")
+        }
+
+        print("\n✅ 최종 생성된 SubLines: \(topLevelSubLines)")
+        return topLevelSubLines
     }
 
     private func renderAnswer(answer: Binding<AnswerModel>) -> AnyView {
@@ -197,9 +228,12 @@ extension EditQuestionView {
             CusTextEditorView(
                 viewModel: vm,
                 text: Binding(
-                    get: { combineSubLines(question.answer.subLines) },
+                    get: {
+                        tempText = combineSubLines(question.answer.subLines)  // 초기 텍스트 설정
+                        return tempText
+                    },
                     set: { newValue in
-                        question.answer.subLines = parseTextToSubLines(newValue)
+                        tempText = newValue  // 텍스트가 변경될 때 임시 변수에 저장
                     }
                 ),
                 categoryID: meCategoryID,

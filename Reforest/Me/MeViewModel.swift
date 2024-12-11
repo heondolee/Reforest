@@ -66,21 +66,22 @@ class MeViewModel: ObservableObject {
     }
 
     // Question 업데이트 함수
-    func updateQuestion(categoryID: UUID, questionID: UUID, newText: String) {
+    func updateQuestion(categoryID: UUID, questionID: UUID, editedQuestion: QuestionModel) {
         if let categoryIndex = meCategoryModelList.firstIndex(where: { $0.id == categoryID }),
-           let questionIndex = meCategoryModelList[categoryIndex].questionModelList.firstIndex(where: { $0.id == questionID }) {
-
-            let parsedSubLines = parseTextToSubLines(newText)
-            meCategoryModelList[categoryIndex].questionModelList[questionIndex].answer.subLines = parsedSubLines
+        let questionIndex = meCategoryModelList[categoryIndex].questionModelList.firstIndex(where: { $0.id == questionID }) {
+            
+            // 기존 질문을 새로 수정된 질문으로 교체
+            meCategoryModelList[categoryIndex].questionModelList[questionIndex] = editedQuestion
         }
     }
+
 
     func addQuestion(categoryID: UUID, newQuestion: QuestionModel) {
         if let categoryIndex = meCategoryModelList.firstIndex(where: { $0.id == categoryID }) {
             self.meCategoryModelList[categoryIndex].questionModelList.append(newQuestion)
         }
     }
-    
+
     // SubLineModel 관련 메서드 추가
     func addSubLine(to questionID: UUID, in categoryID: UUID, subLine: SubLineModel) {
         guard let categoryIndex = meCategoryModelList.firstIndex(where: { $0.id == categoryID }),
