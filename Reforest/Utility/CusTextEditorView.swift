@@ -13,7 +13,8 @@ struct MarkdownEditorView: UIViewRepresentable {
     @Binding var overlays: [OverlayItem]
     @ObservedObject var viewModel: MeViewModel
     var categoryID: UUID
-    var contentID: UUID
+    let questionID: UUID  // 💖 contentID → questionID로 변경
+    let answerID: UUID  // 💖 answerID로 변경
 
     func makeUIView(context: Context) -> UITextView {
         let textView = UITextView()
@@ -38,21 +39,23 @@ struct MarkdownEditorView: UIViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(self, viewModel: viewModel, categoryID: categoryID, contentID: contentID)
+        Coordinator(self, viewModel: viewModel, categoryID: categoryID, questionID: questionID, answerID: answerID)
     }
 
     class Coordinator: NSObject, UITextViewDelegate {
         var parent: MarkdownEditorView
         var viewModel: MeViewModel
         var categoryID: UUID
-        var contentID: UUID
-        weak var textView: UITextView? // UITextView를 저장할 약한 참조
+        var questionID: UUID  // 💖 contentID → questionID로 변경
+        var answerID: UUID    // 💖 answerID 추가
+        weak var textView: UITextView?
 
-        init(_ parent: MarkdownEditorView, viewModel: MeViewModel, categoryID: UUID, contentID: UUID) {
+        init(_ parent: MarkdownEditorView, viewModel: MeViewModel, categoryID: UUID, questionID: UUID, answerID: UUID) {  // 💖 파라미터 업데이트
             self.parent = parent
             self.viewModel = viewModel
             self.categoryID = categoryID
-            self.contentID = contentID
+            self.questionID = questionID  // 💖
+            self.answerID = answerID      // 💖
         }
 
         func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
@@ -113,39 +116,39 @@ struct MarkdownEditorView: UIViewRepresentable {
             updateOverlays(for: textView)
         }
 
-func updateOverlays(for textView: UITextView) {
-    var newOverlays: [OverlayItem] = []
-    let lines = textView.text.components(separatedBy: "\n")
+        func updateOverlays(for textView: UITextView) {
+            var newOverlays: [OverlayItem] = []
+            let lines = textView.text.components(separatedBy: "\n")
 
-    // 각 라인의 높이와 들여쓰기 간격 설정
-    let lineHeight: CGFloat = 19.5
-    let indentWidth: CGFloat = 27.0
+            // 각 라인의 높이와 들여쓰기 간격 설정
+            let lineHeight: CGFloat = 19.5
+            let indentWidth: CGFloat = 27.0
 
-    for (index, line) in lines.enumerated() {
-        let indentLevel = line.prefix(while: { $0 == "\t" }).count
-        let positionY = CGFloat(index) * lineHeight + 43.0
-        let positionX = CGFloat(indentLevel) * indentWidth + 25.0
+            for (index, line) in lines.enumerated() {
+                let indentLevel = line.prefix(while: { $0 == "\t" }).count
+                let positionY = CGFloat(index) * lineHeight + 43.0
+                let positionX = CGFloat(indentLevel) * indentWidth + 25.0
 
-        // 자식 노드가 있는지 확인 (다음 줄의 들여쓰기 수준이 현재보다 깊은 경우)
-        let hasChild = (index + 1 < lines.count) && lines[index + 1].prefix(while: { $0 == "\t" }).count > indentLevel
+                // 자식 노드가 있는지 확인 (다음 줄의 들여쓰기 수준이 현재보다 깊은 경우)
+                let hasChild = (index + 1 < lines.count) && lines[index + 1].prefix(while: { $0 == "\t" }).count > indentLevel
 
-        if hasChild {
-            // 화살표 추가 (텍스트와 정렬되도록 위치 조정)
-            newOverlays.append(OverlayItem(position: CGPoint(x: positionX, y: positionY - 5.0), isArrow: true))
+                if hasChild {
+                    // 화살표 추가 (텍스트와 정렬되도록 위치 조정)
+                    newOverlays.append(OverlayItem(position: CGPoint(x: positionX, y: positionY - 5.0), isArrow: true))
 
-            // 자식 노드의 개수 확인
-            let childCount = lines[(index + 1)...].prefix { $0.prefix(while: { $0 == "\t" }).count > indentLevel }.count
+                    // 자식 노드의 개수 확인
+                    let childCount = lines[(index + 1)...].prefix { $0.prefix(while: { $0 == "\t" }).count > indentLevel }.count
 
-            // 세로 줄의 길이를 자식 노드의 개수에 맞게 설정
-            let verticalLineHeight = CGFloat(childCount) * lineHeight
+                    // 세로 줄의 길이를 자식 노드의 개수에 맞게 설정
+                    let verticalLineHeight = CGFloat(childCount) * lineHeight
 
-            // 세로 줄 추가 (화살표의 위치에서 시작하도록 설정)
-            newOverlays.append(OverlayItem(position: CGPoint(x: positionX, y: positionY + verticalLineHeight / 2 + 2), isArrow: false, height: verticalLineHeight))
+                    // 세로 줄 추가 (화살표의 위치에서 시작하도록 설정)
+                    newOverlays.append(OverlayItem(position: CGPoint(x: positionX, y: positionY + verticalLineHeight / 2 + 2), isArrow: false, height: verticalLineHeight))
+                }
+            }
+
+            parent.overlays = newOverlays
         }
-    }
-
-    parent.overlays = newOverlays
-}
 
 
         func makeToolbar() -> UIToolbar {
@@ -437,15 +440,15 @@ struct CusTextEditorView: View {
     @State private var overlays: [OverlayItem] = []
 
     let categoryID: UUID
-    let contentID: UUID
-    let sublineID: UUID
+    let questionID: UUID  // 💖 contentID → questionID로 변경
+    let answerID: UUID
 
-    init(viewModel: MeViewModel, text: Binding<String>, categoryID: UUID, contentID: UUID, sublineID: UUID) {
+    init(viewModel: MeViewModel, text: Binding<String>, categoryID: UUID, questionID: UUID, answerID: UUID) { // 💖 파라미터 이름 수정
         self.viewModel = viewModel
         self._text = text
         self.categoryID = categoryID
-        self.contentID = contentID
-        self.sublineID = sublineID
+        self.questionID = questionID  // 💖 수정된 부분
+        self.answerID = answerID      // 💖 수정된 부분
     }
 
     var body: some View {
@@ -456,7 +459,8 @@ struct CusTextEditorView: View {
                 overlays: $overlays,
                 viewModel: viewModel,
                 categoryID: categoryID,
-                contentID: contentID
+                questionID: questionID,  // 💖 contentID → questionID로 변경
+                answerID: answerID       // 💖 answerID 추가
             )
             .padding()
 

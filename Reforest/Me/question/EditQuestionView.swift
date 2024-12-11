@@ -5,7 +5,7 @@ struct EditQuestionView: View {
     
     @ObservedObject var vm: MeViewModel
     
-    @State var content: ContentModel
+    @State var question: QuestionModel
     @State var isShowEmptyAlert: Bool = false
     
     @FocusState private var isKeyBoardOn: Bool
@@ -15,32 +15,34 @@ struct EditQuestionView: View {
     let isThisEditView: Bool
     let meCategoryID: UUID
     
-    init(vm: MeViewModel, meCategoryID: UUID, content: ContentModel?) {
+    init(vm: MeViewModel, meCategoryID: UUID, question: QuestionModel?) {
         self.vm = vm
         self.meCategoryID = meCategoryID
-        if let content {
-            self._content = State(initialValue: content)
+        if let question {
+            self._question = State(initialValue: question)
             self.isThisEditView = true
         } else {
-            self._content = State(initialValue: ContentModel(
+            self._question = State(initialValue: QuestionModel(
                 id: UUID(),
                 headLine: "",
-                subLines: [
-                    SubLineModel(
-                        id: UUID(),
-                        text: "",
-                        indentLevel: 0,
-                        listStyle: .none, // 초기화할 때 리스트 스타일 설정
-                        isChecked: false, // 기본값은 체크되지 않음
-                        subLines: [] // 계층 구조 초기
-                    )
-                ]
+                answer: AnswerModel(
+                    id: UUID(),
+                    subLines: [
+                        SubLineModel(
+                            id: UUID(),
+                            text: "",
+                            indentLevel: 0,
+                            listStyle: .none, // 초기 리스트 스타일
+                            isChecked: false, // 기본값은 체크되지 않음
+                            subLines: []      // 초기 하위 subLines
+                        )
+                    ]
+                )
             ))
             self.isThisEditView = false
         }
     }
 
-    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             NavigationHeaderView()
@@ -58,34 +60,33 @@ struct EditQuestionView: View {
 }
 
 extension EditQuestionView {
-    
     private func NavigationHeaderView() -> some View {
         VStack(spacing: 0) {
             HStack(spacing: 0) {
                 Text(isThisEditView ? "나 - 수정하기" : "나 - 추가하기")
-                    .font(Font.system(size: 22, weight: .bold))
+                    .font(.system(size: 22, weight: .bold))
                 Spacer()
                 Text("취소")
                     .foregroundColor(.gray)
-                    .font(Font.system(size: 20, weight: .bold))
+                    .font(.system(size: 20, weight: .bold))
                     .onTapGesture {
                         dismiss()
                     }
                     .padding(.trailing, 30)
                 Button {
-                    if content.headLine.isEmpty || content.subLines.allSatisfy({ $0.text.isEmpty }) {
+                    if question.headLine.isEmpty || question.answer.subLines.allSatisfy({ $0.text.isEmpty }) {
                         isShowEmptyAlert = true
                     } else {
                         if isThisEditView {
-                            vm.updateContent(MeCategoryID: meCategoryID, editContent: content)
+                            vm.updateQuestion(categoryID: meCategoryID, editQuestion: question)
                         } else {
-                            vm.addContent(MeCategoryID: meCategoryID, addContent: content)
+                            vm.addQuestion(categoryID: meCategoryID, newQuestion: question)
                         }
                         dismiss()
                     }
                 } label: {
                     Text("완료")
-                        .font(Font.system(size: 20, weight: .bold))
+                        .font(.system(size: 20, weight: .bold))
                 }
             }
             .padding(.horizontal, 20)
@@ -101,7 +102,7 @@ extension EditQuestionView {
                 ForEach(vm.meCategoryModelList) { category in
                     let isSelected = category.id == vm.selectedCategory.id
                     Text(category.title)
-                        .font(Font.system(size: 17, weight: .bold))
+                        .font(.system(size: 17, weight: .bold))
                         .padding(.horizontal, 20)
                         .padding(.vertical, 5)
                         .background(isSelected ? .white : .clear)
@@ -112,56 +113,59 @@ extension EditQuestionView {
                 }
             }
             .padding(8)
-            .background(.gray.opacity(0.1))
+            .background(Color.gray.opacity(0.1))
             .cornerRadius(25)
             .padding(.horizontal, 20)
             .padding(.vertical, 20)
             .shadow(
                 color: .black.opacity(0.1),
-                radius: CGFloat(8),
-                x: CGFloat(0), y: CGFloat(3)
+                radius: 8,
+                x: 0, y: 3
             )
         }
     }
-    
+
     private func ContentEditView() -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            TextField("질문을 입력하세요.", text: $content.headLine)
-                .font(Font.system(size: 16, weight: .heavy))
-                .focused($isKeyBoardOn)
-                .padding(.horizontal, 6)
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(content.subLines.indices, id: \.self) { index in
-                    renderSubLine(subLine: $content.subLines[index])
-                }
-            }
-            .padding(.horizontal, 10)
-
+    VStack(alignment: .leading, spacing: 6) {
+        TextField("질문을 입력하세요.", text: $question.headLine)
+            .font(.system(size: 16, weight: .heavy))
+            .focused($isKeyBoardOn)
+            .padding(.horizontal, 6)
+        
+        VStack(alignment: .leading, spacing: 8) {
+            renderAnswer(answer: $question.answer)  // 💖 renderSubLine 대신 renderAnswer 호출
         }
-        .whiteBoxWithShadow(lineSpacing: 8)
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 10)
     }
+    .whiteBoxWithShadow(lineSpacing: 8)
+    .padding(.horizontal, 20)
+}
 
-    //subLine: SubLineModel의 바인딩입니다. 바인딩을 사용하면 값이 변경될 때 뷰가 자동으로 업데이트됩니다.
-    private func renderSubLine(subLine: Binding<SubLineModel>) -> AnyView {
-        let sublineID = subLine.wrappedValue.id
+    private func renderAnswer(answer: Binding<AnswerModel>) -> AnyView {
+        let answerID = answer.wrappedValue.id  // 💖 answerID 사용
 
         return AnyView(
             CusTextEditorView(
                 viewModel: vm,
-                text: subLine.text,
+                text: Binding(
+                    get: { answer.wrappedValue.subLines.first?.text ?? "" },
+                    set: { newValue in
+                        if !answer.wrappedValue.subLines.isEmpty {
+                            answer.wrappedValue.subLines[0].text = newValue  // 💖 첫 번째 요소의 text를 수정
+                        }
+                    }
+                ),
                 categoryID: meCategoryID,
-                contentID: content.id,
-                sublineID: sublineID
+                questionID: question.id,  // 💖 contentID → questionID로 변경
+                answerID: answerID
             )
         )
     }
 }
 
 #Preview {
-    // 첫 번째 카테고리에서 첫 번째 ContentModel 선택
     if let firstCategory = mockData_meCategoryModelList.first,
-        let firstContent = firstCategory.contentList.first {
+       let firstQuestion = firstCategory.questionModelList.first {
         let mockViewModel = MeViewModel(
             meCategoryModelList: mockData_meCategoryModelList,
             profile: mockData_profile
@@ -169,7 +173,7 @@ extension EditQuestionView {
         return EditQuestionView(
             vm: mockViewModel,
             meCategoryID: firstCategory.id,
-            content: firstContent
+            question: firstQuestion
         )
     } else {
         return Text("Mock 데이터가 비어 있습니다.")

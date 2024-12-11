@@ -1,17 +1,10 @@
-//
-//  MeView.swift
-//  Reforest
-//
-//  Created by 가은리 on 11/28/24.
-//
-
 import SwiftUI
 
 struct MeView: View {
     
     @StateObject private var vm: MeViewModel
     
-    @State private var selectedContent: ContentModel? = nil
+    @State private var selectedQuestion: QuestionModel? = nil
     @State private var isShowAddingContentView: Bool = false
     @State private var selectedMeCategory: MeCategoryModel? = nil
     @State private var isShowEditCategoryView: Bool = false
@@ -23,7 +16,7 @@ struct MeView: View {
         let profileImage = UserDefaultKey.getValueFromDevice(key: .profileImage, Data.self) ?? Data()
         let profile = ProfileModel(name: profileName, profileImage: UIImage(data: profileImage), value: profileValue)
         self._vm = StateObject(wrappedValue: MeViewModel(meCategoryModelList: meCategoryModelList, profile: profile))
-        self.selectedContent = selectedContent
+        self.selectedQuestion = selectedQuestion
         self.isShowAddingContentView = isShowAddingContentView
     }
     
@@ -62,9 +55,9 @@ struct MeView: View {
         .fullScreenCover(isPresented: $vm.isShowProfileView, content: {
             ProfileView(vm: vm)
         })
-        .fullScreenCover(item: $selectedContent, content: { selectedContent in
+        .fullScreenCover(item: $selectedQuestion, content: { selectedQuestion in 
             if let selectedMeCategoryModelId = selectedMeCategory?.id {
-                EditQuestionView(vm: vm, meCategoryID: selectedMeCategoryModelId, content: selectedContent)
+                EditQuestionView(vm: vm, meCategoryID: selectedMeCategoryModelId, question: selectedQuestion)
             }
         })
         .fullScreenCover(isPresented: $isShowEditCategoryView, content: {
@@ -72,7 +65,7 @@ struct MeView: View {
         })
         .fullScreenCover(isPresented: $isShowAddingContentView, content: {
             if let selectedMeCategoryModelId = selectedMeCategory?.id {
-                EditQuestionView(vm: vm, meCategoryID: selectedMeCategoryModelId, content: selectedContent)
+                EditQuestionView(vm: vm, meCategoryID: selectedMeCategoryModelId, question: selectedQuestion) 
             } else {
                 Text("카테고리가 선택되지 않음.")
             }
@@ -199,10 +192,10 @@ extension MeView {
         VStack(spacing: 0) {
             if let preSelectedMeCategory = selectedMeCategory,
                let selectedMeCategory = vm.getUpdatedMeCategory(preSelectedMeCategory),
-               !selectedMeCategory.contentList.isEmpty {
+               !selectedMeCategory.questionModelList.isEmpty { 
                 ScrollView(showsIndicators: false) {
-                    ForEach(selectedMeCategory.contentList, id: \.self) { content in
-                        meCategoryContentBox(meCategory: selectedMeCategory, content)
+                    ForEach(selectedMeCategory.questionModelList, id: \.self) { question in 
+                        meCategoryContentBox(meCategory: selectedMeCategory, question) 
                     }
                 }
             } else {
@@ -210,7 +203,7 @@ extension MeView {
                     Spacer()
                     Text("나에 대해 작성해보세요")
                         .padding(.horizontal, 20)
-                        .opacity(0.5) // 흐림 효과
+                        .opacity(0.5)
                     Spacer()
                     Spacer()
                 }
@@ -241,23 +234,23 @@ extension MeView {
         .cornerRadius(9)
     }
     
-    private func meCategoryContentBox(meCategory: MeCategoryModel, _ content: ContentModel) -> some View {
+    private func meCategoryContentBox(meCategory: MeCategoryModel, _ question: QuestionModel) -> some View { 
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 0) {
-                Text(content.headLine)
+                Text(question.headLine) 
                     .font(Font.system(size: 16, weight: .semibold))
                     .lineLimit(1)
                 Spacer()
                 Menu {
                     Button {
                         selectedMeCategory = meCategory
-                        selectedContent = content
+                        selectedQuestion = question 
                     } label: {
                         Label("수정", systemImage: "pencil")
                     }
                     
                     Button {
-                        vm.removeContent(by: content.id)
+                        vm.removeQuestion(by: question.id) 
                     } label: {
                         Label("삭제", systemImage: "trash")
                     }
@@ -270,7 +263,7 @@ extension MeView {
             .padding(.bottom, 8)
             
             VStack(alignment: .leading, spacing: 5) {
-                ForEach(content.subLines, id: \.id) { subLine in
+                ForEach(question.answer.subLines, id: \.id) { subLine in 
                     renderSubLine(subLine, indentLevel: subLine.indentLevel)
                 }
             }
@@ -284,17 +277,6 @@ extension MeView {
         return AnyView(
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    if subLine.listStyle == .checkbox {
-                        Image(systemName: subLine.isChecked ? "checkmark.square.fill" : "square")
-                            .onTapGesture {
-                                toggleCheckBox(subLine)
-                            }
-                    } else if subLine.listStyle == .numbered {
-                        Text("\(indentLevel + 1).")
-                    } else if subLine.listStyle == .bulleted {
-                        Circle().frame(width: 8, height: 8)
-                    }
-                    
                     Text(subLine.text.isEmpty ? "내용이 없습니다." : subLine.text)
                         .font(Font.system(size: 14))
                         .foregroundColor(subLine.text.isEmpty ? .gray : .black)
@@ -308,27 +290,6 @@ extension MeView {
             }
             .padding(.vertical, 4)
         )
-    }
-    
-    private func toggleCheckBox(_ subLine: SubLineModel) {
-        guard subLine.listStyle == .checkbox else { return }
-        
-        if let categoryIndex = vm.meCategoryModelList.firstIndex(where: { category in
-            category.contentList.contains(where: { content in
-                content.subLines.contains(where: { $0.id == subLine.id })
-            })
-        }),
-           let contentIndex = vm.meCategoryModelList[categoryIndex].contentList.firstIndex(where: { content in
-               content.subLines.contains(where: { $0.id == subLine.id })
-           }),
-           let _ = vm.meCategoryModelList[categoryIndex].contentList[contentIndex].subLines.firstIndex(where: { $0.id == subLine.id }) {
-
-            vm.toggleCheckBox(
-                in: vm.meCategoryModelList[categoryIndex].contentList[contentIndex].id,
-                categoryID: vm.meCategoryModelList[categoryIndex].id,
-                subLineID: subLine.id
-            )
-        }
     }
 }
 

@@ -17,12 +17,17 @@ enum ListStyle: String, Codable {
 struct MeCategoryModel: Hashable, Codable, Identifiable {
     let id: UUID
     var title: String
-    var contentList: [ContentModel]
+    var questionModelList: [QuestionModel]
 }
 
-struct ContentModel: Hashable, Identifiable, Codable {
+struct QuestionModel: Hashable, Identifiable, Codable {
     let id: UUID
     var headLine: String
+    var answer: AnswerModel
+}
+
+struct AnswerModel: Hashable, Codable {
+    let id: UUID
     var subLines: [SubLineModel]
 }
 

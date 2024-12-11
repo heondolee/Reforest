@@ -1,10 +1,3 @@
-//
-//  EditCategoryView.swift
-//  Reforest
-//
-//  Created by 가은리 on 11/29/24.
-//
-
 import SwiftUI
 
 struct EditCategoryView: View {
@@ -24,7 +17,7 @@ struct EditCategoryView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: .zero) {
-            NavigationView()
+            NavigationHeaderView()
             ListView()
         }
         .alert(isPresented: $isShowEmptyAlert) {
@@ -34,21 +27,20 @@ struct EditCategoryView: View {
 }
 
 extension EditCategoryView {
-    private func NavigationView() -> some View {
+    private func NavigationHeaderView() -> some View {
         VStack(spacing: 0) {
             HStack(spacing: 0) {
                 Text("나 - 카테고리 수정하기")
                     .font(Font.system(size: 22, weight: .bold))
                 Spacer()
                 Text("취소")
-                    .foregroundStyle(.gray)
+                    .foregroundColor(.gray)
                     .font(Font.system(size: 20, weight: .bold))
                     .onTapGesture {
                         dismiss()
                     }
                     .padding(.trailing, 30)
                 Button {
-                    vm.meCategoryModelList = []
                     vm.meCategoryModelList = meCategoryModelList
                     dismiss()
                 } label: {
@@ -74,7 +66,7 @@ extension EditCategoryView {
                         Button {
                             editMode = .active
                             isEditMode = false
-                            meCategoryModelList.append(MeCategoryModel(id: UUID(), title: editText, contentList: []))
+                            meCategoryModelList.append(MeCategoryModel(id: UUID(), title: editText, questionModelList: []))
                         } label: {
                             Text("카테고리 추가")
                                 .font(Font.system(size: 16, weight: .semibold))
@@ -96,16 +88,16 @@ extension EditCategoryView {
                 .padding(.top, 20)
                 .padding(.bottom, 10)
                 .padding(.horizontal, 20)
+                
                 List {
                     ForEach(meCategoryModelList, id: \.id) { meCategory in
                         HStack {
                             Text(meCategory.title)
                                 .font(Font.system(size: 16, weight: .semibold))
-                                .padding(.leading, 16) // 텍스트 왼쪽 여백
+                                .padding(.leading, 16)
                             
-                            Spacer() // 텍스트를 왼쪽 정렬
+                            Spacer()
                             
-                            // 쓰레기통 버튼을 오른쪽에 배치
                             Button(action: {
                                 deleteItem(meCategory: meCategory)
                             }) {
@@ -113,8 +105,8 @@ extension EditCategoryView {
                                     .foregroundColor(.red)
                                     .frame(width: 24, height: 24)
                             }
-                            .buttonStyle(PlainButtonStyle()) // 버튼 스타일을 기본으로 설정
-                            .padding(.trailing, 16) // 버튼 오른쪽 여백
+                            .buttonStyle(PlainButtonStyle())
+                            .padding(.trailing, 16)
                         }
                         .padding(.vertical, 14.0)
                         .background(
@@ -122,14 +114,13 @@ extension EditCategoryView {
                                 .fill(Color.white)
                                 .shadow(color: Color.black.opacity(0.1), radius: 3, x: 0, y: 2)
                         )
-                        .padding(.horizontal, 8) // 각 리스트 항목의 좌우 여백
-                        .listRowSeparator(.hidden) // 구분선 제거
+                        .padding(.horizontal, 8)
+                        .listRowSeparator(.hidden)
                     }
                     .onMove(perform: moveItem)
                 }
-                .listStyle(PlainListStyle()) // 리스트 스타일 간소화
+                .listStyle(PlainListStyle())
                 .environment(\.editMode, $editMode)
- 
             }
         }
     }
@@ -140,6 +131,7 @@ extension EditCategoryView {
     private func deleteItem(meCategory: MeCategoryModel) {
         meCategoryModelList.removeAll { $0.id == meCategory.id }
     }
+
     // 항목을 이동시키는 함수
     private func moveItem(from source: IndexSet, to destination: Int) {
         meCategoryModelList.move(fromOffsets: source, toOffset: destination)
