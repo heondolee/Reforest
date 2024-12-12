@@ -13,8 +13,8 @@ struct MarkdownEditorView: UIViewRepresentable {
     @Binding var overlays: [OverlayItem]
     @ObservedObject var viewModel: MeViewModel
     var categoryID: UUID
-    let questionID: UUID  // 💖 contentID → questionID로 변경
-    let answerID: UUID  // 💖 answerID로 변경
+    let questionID: UUID 
+    let answerID: UUID
 
     func makeUIView(context: Context) -> UITextView {
         let textView = UITextView()
@@ -22,6 +22,9 @@ struct MarkdownEditorView: UIViewRepresentable {
         textView.font = UIFont.systemFont(ofSize: 16)
         textView.delegate = context.coordinator
         textView.inputAccessoryView = context.coordinator.makeToolbar()
+
+        // 왼쪽 패딩 16 설정
+        textView.textContainerInset = UIEdgeInsets(top: 10, left: 16, bottom: 0, right: 0)
 
         // 탭 제스처 추가 (기본 터치 이벤트와 함께 동작하도록 설정)
         let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(context.coordinator.handleTap(_:)))
@@ -43,16 +46,16 @@ struct MarkdownEditorView: UIViewRepresentable {
         var parent: MarkdownEditorView
         var viewModel: MeViewModel
         var categoryID: UUID
-        var questionID: UUID  // 💖 contentID → questionID로 변경
-        var answerID: UUID    // 💖 answerID 추가
+        var questionID: UUID  
+        var answerID: UUID    
         weak var textView: UITextView?
 
         init(_ parent: MarkdownEditorView, viewModel: MeViewModel, categoryID: UUID, questionID: UUID, answerID: UUID) {  // 💖 파라미터 업데이트
             self.parent = parent
             self.viewModel = viewModel
             self.categoryID = categoryID
-            self.questionID = questionID  // 💖
-            self.answerID = answerID      // 💖
+            self.questionID = questionID  
+            self.answerID = answerID      
         }
 
         func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
@@ -118,13 +121,13 @@ struct MarkdownEditorView: UIViewRepresentable {
             let lines = textView.text.components(separatedBy: "\n")
 
             // 각 라인의 높이와 들여쓰기 간격 설정
-            let lineHeight: CGFloat = 19.5
-            let indentWidth: CGFloat = 27.0
+            let lineHeight: CGFloat = 19
+            let indentWidth: CGFloat = 27.5
 
             for (index, line) in lines.enumerated() {
                 let indentLevel = line.prefix(while: { $0 == "\t" }).count
-                let positionY = CGFloat(index) * lineHeight + 43.0
-                let positionX = CGFloat(indentLevel) * indentWidth + 25.0
+                let positionY = CGFloat(index) * lineHeight + 25.0
+                let positionX = CGFloat(indentLevel) * indentWidth + 8
 
                 // 자식 노드가 있는지 확인 (다음 줄의 들여쓰기 수준이 현재보다 깊은 경우)
                 let hasChild = (index + 1 < lines.count) && lines[index + 1].prefix(while: { $0 == "\t" }).count > indentLevel
@@ -254,38 +257,24 @@ struct MarkdownEditorView: UIViewRepresentable {
         func insertListItem(style: ListStyle, prefix: String) {
             // findFirstResponder 확인
             guard let textView = findFirstResponder() else {
-                print("⚠️ 텍스트 뷰를 찾을 수 없습니다.")
                 return
             }
-            print("✅ 텍스트 뷰를 성공적으로 찾았습니다.")
-
             // 선택된 범위와 라인 범위 확인
             guard let selectedRange = textView.selectedTextRange,
                 let lineRange = textView.tokenizer.rangeEnclosingPosition(selectedRange.start, with: .line, inDirection: UITextDirection(rawValue: 0)),
                 let lineText = textView.text(in: lineRange) else {
-                print("⚠️ 선택된 범위나 라인 텍스트를 가져오지 못했습니다.")
                 return
             }
-
-            print("📝 선택된 라인 텍스트: '\(lineText)'")
-
             // 들여쓰기 수준 확인
             let indentLevel = lineText.prefix(while: { $0 == "\t" }).count
-            print("🔹 들여쓰기 수준: \(indentLevel)")
-
             // 현재 라인의 인덱스 확인
             let lines = textView.text.components(separatedBy: "\n")
             let currentIndex = lines.firstIndex(of: lineText) ?? 0
-            print("🔹 현재 라인 인덱스: \(currentIndex)")
-
             var number = 1
-
             // 이전 라인에서 동일한 들여쓰기 수준의 마지막 숫자 찾기
             for i in (0..<currentIndex).reversed() {
                 let previousLine = lines[i]
                 let previousIndentLevel = previousLine.prefix(while: { $0 == "\t" }).count
-
-                print("🔍 이전 라인: '\(previousLine)', 들여쓰기 수준: \(previousIndentLevel)")
 
                 if previousIndentLevel == indentLevel {
                     let numberPattern = #"^\s*\d+\."#
@@ -293,13 +282,11 @@ struct MarkdownEditorView: UIViewRepresentable {
                         let matchedNumber = previousLine[match].trimmingCharacters(in: .whitespaces).dropLast()
                         if let previousNumber = Int(matchedNumber) {
                             number = previousNumber + 1
-                            print("🔢 이전 번호: \(previousNumber), 다음 번호: \(number)")
                         }
                     }
                     break
                 } else if previousIndentLevel < indentLevel {
                     number = 1
-                    print("🔄 부모가 다르므로 번호를 1로 초기화합니다.")
                     break
                 }
             }
@@ -317,10 +304,8 @@ struct MarkdownEditorView: UIViewRepresentable {
 
             // 라인 업데이트
             let updatedLine = lineText.replacingOccurrences(of: #"^([\t ]*)(• |\d+\.|☐ |☑ )?"#, with: "$1" + newPrefix, options: .regularExpression)
-            print("✅ 업데이트된 라인: '\(updatedLine)'")
 
             textView.replace(lineRange, withText: updatedLine)
-            print("✅ 라인 업데이트가 완료되었습니다.")
         }
 
         @objc func indentText() {
@@ -406,7 +391,6 @@ struct MarkdownEditorView: UIViewRepresentable {
 extension UIView {
     func findTextView() -> UITextView? {
         if let textView = self as? UITextView {
-            print("✅ UITextView를 발견했습니다: \(textView)")
             return textView
         }
         for subview in subviews {
@@ -428,24 +412,21 @@ struct OverlayItem: Identifiable {
     var height: CGFloat = 20.0  // 기본 높이를 20.0으로 설정
 }
 
-// SwiftUI View
-import SwiftUI
-
 struct CusTextEditorView: View {
     @ObservedObject var viewModel: MeViewModel
     @Binding var text: String
     @State private var overlays: [OverlayItem] = []
 
     let categoryID: UUID
-    let questionID: UUID  // 💖 contentID → questionID로 변경
+    let questionID: UUID  
     let answerID: UUID
 
     init(viewModel: MeViewModel, text: Binding<String>, categoryID: UUID, questionID: UUID, answerID: UUID) { // 💖 파라미터 이름 수정
         self.viewModel = viewModel
         self._text = text
         self.categoryID = categoryID
-        self.questionID = questionID  // 💖 수정된 부분
-        self.answerID = answerID      // 💖 수정된 부분
+        self.questionID = questionID  
+        self.answerID = answerID      
     }
 
     var body: some View {
@@ -456,8 +437,8 @@ struct CusTextEditorView: View {
                 overlays: $overlays,
                 viewModel: viewModel,
                 categoryID: categoryID,
-                questionID: questionID,  // 💖 contentID → questionID로 변경
-                answerID: answerID       // 💖 answerID 추가
+                questionID: questionID,  
+                answerID: answerID
             )
 
             // 오버레이로 화살표와 줄 표시
