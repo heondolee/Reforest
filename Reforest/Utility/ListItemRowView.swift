@@ -17,7 +17,6 @@ struct ListItemRowView: View {
                     ListRowView(item: item, depth: 0)
                 }
             }
-            .padding()
         }
     }
 }
