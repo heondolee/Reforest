@@ -169,8 +169,6 @@ extension EditQuestionView {
     }
 
     private func parseTextToSubLines(_ text: String) -> [SubLineModel] {
-        print("🔹 입력된 텍스트:\n\(text)")
-
         // 메서드 내부에서만 사용할 SubLineModel2 정의
         class SubLineModel2: Identifiable {
             let id: UUID
@@ -203,7 +201,6 @@ extension EditQuestionView {
         }
 
         let lines = text.components(separatedBy: "\n").filter { !$0.isEmpty }
-        print("🔍 분리된 라인들: \(lines)")
 
         var rootSubLines: [SubLineModel2] = []
         var stack: [SubLineModel2] = []
@@ -220,33 +217,22 @@ extension EditQuestionView {
                 isChecked: false,
                 subLines: []
             )
-
-            print("\n➡️ 처리 중인 라인 (\(index + 1)):")
-            print("  원본 라인: '\(line)'")
-            print("  들여쓰기 수준: \(indentLevel)")
-            print("  텍스트: '\(trimmedText)'")
-
             // 스택에서 현재 indentLevel보다 큰 요소들만 제거
             while let last = stack.last, last.indentLevel >= indentLevel {
-                print("  🔻 스택에서 제거: \(last.text) (indentLevel: \(last.indentLevel))")
                 stack.removeLast()
             }
 
             if let parent = stack.last {
                 // 부모의 subLines에 현재 라인을 추가
-                print("  📎 부모 (\(parent.text))에 현재 라인 추가")
                 parent.subLines.append(newSubLine)
             } else {
                 // 최상위 레벨이면 rootSubLines에 추가
-                print("  🌳 최상위 라인으로 추가")
                 rootSubLines.append(newSubLine)
             }
 
             // 스택에 현재 라인을 추가
             stack.append(newSubLine)
-            print("  🗂️ 현재 스택 상태: \(stack.map { $0.text })")
         }
-
         // SubLineModel2를 SubLineModel로 변환하여 반환
         return rootSubLines.map { $0.toSubLineModel() }
     }
