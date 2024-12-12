@@ -81,8 +81,6 @@ extension MeView {
                 Text("나")
                     .font(.largeTitle)
                     .fontWeight(.bold)
-                    
-                    
                 Spacer()
             }
             .padding(.horizontal, 20)

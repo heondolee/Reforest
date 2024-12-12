@@ -22,10 +22,9 @@ struct HomeView: View {
     }
     
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             TopView()
             profile()
-            
             Spacer()
         }
     }
@@ -38,8 +37,7 @@ extension HomeView {
                 Image(.homeLogo)
                     .resizable()
                     .scaledToFit()
-                    .frame(height: 40)
-                
+                    .frame(height: 43)
                 Spacer()
             }
             .padding(.horizontal, 20)
@@ -68,9 +66,10 @@ extension HomeView {
                         .background(.tertiary.opacity(0.12))
                         .clipShape(Circle())
                 }
-                Text(vm.profile.name)
+                Text(vm.profile.name.isEmpty ? "이름" : vm.profile.name)
                     .font(Font.system(size: 15, weight: .bold))
-                    .padding(.top, 10)
+                    .opacity(vm.profile.name.isEmpty ? 0.5 : 1.0) // 흐림 효과
+                    .padding(.top, 15)
             }
             .padding(.trailing, 20)
             Text(vm.profile.value)
