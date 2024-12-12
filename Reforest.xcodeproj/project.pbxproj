@@ -31,6 +31,7 @@
 		F366AEF92CF8E0E200D05D24 /* EditCategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F366AEF82CF8E0E200D05D24 /* EditCategoryView.swift */; };
 		F366AEFB2CF8E90100D05D24 /* UserdefaultKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = F366AEFA2CF8E90100D05D24 /* UserdefaultKey.swift */; };
 		F3BAB4052D083443006B8543 /* CusTextEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BAB4042D083443006B8543 /* CusTextEditorView.swift */; };
+		F3BAB4092D0AFE2C006B8543 /* ListItemRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BAB4082D0AFE2C006B8543 /* ListItemRowView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -59,6 +60,7 @@
 		F366AEF82CF8E0E200D05D24 /* EditCategoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditCategoryView.swift; sourceTree = "<group>"; };
 		F366AEFA2CF8E90100D05D24 /* UserdefaultKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserdefaultKey.swift; sourceTree = "<group>"; };
 		F3BAB4042D083443006B8543 /* CusTextEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CusTextEditorView.swift; sourceTree = "<group>"; };
+		F3BAB4082D0AFE2C006B8543 /* ListItemRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListItemRowView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -173,6 +175,7 @@
 		F366AEEB2CF8A33600D05D24 /* Utility */ = {
 			isa = PBXGroup;
 			children = (
+				F3BAB4082D0AFE2C006B8543 /* ListItemRowView.swift */,
 				F366AEE22CF8954900D05D24 /* ImagePicker.swift */,
 				F366AEFA2CF8E90100D05D24 /* UserdefaultKey.swift */,
 				F366AEE72CF8A30700D05D24 /* ViewExtension.swift */,
@@ -281,6 +284,7 @@
 				F366AEF12CF8A4FA00D05D24 /* ProfileModel.swift in Sources */,
 				F366AEED2CF8A34E00D05D24 /* MeView.swift in Sources */,
 				F366AEE32CF8954900D05D24 /* ImagePicker.swift in Sources */,
+				F3BAB4092D0AFE2C006B8543 /* ListItemRowView.swift in Sources */,
 				F3132FD62CFEBF13000105E1 /* HomeView.swift in Sources */,
 				F366AEF72CF8D62900D05D24 /* mockData.swift in Sources */,
 				F3BAB4052D083443006B8543 /* CusTextEditorView.swift in Sources */,

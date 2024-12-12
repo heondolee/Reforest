@@ -264,33 +264,12 @@ extension MeView {
             .padding(.bottom, 8)
             
             VStack(alignment: .leading, spacing: 5) {
-                ForEach(question.answer.subLines, id: \.id) { subLine in 
-                    renderSubLine(subLine, indentLevel: subLine.indentLevel)
-                }
+                ListItemRowView(items: question.answer.subLines)
             }
         }
         .whiteBoxWithShadow(lineSpacing: 8)
         .padding(.horizontal, 20)
         .padding(.top, 10)
-    }
-    
-    private func renderSubLine(_ subLine: SubLineModel, indentLevel: Int) -> AnyView {
-        return AnyView(
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(subLine.text.isEmpty ? "내용이 없습니다." : subLine.text)
-                        .font(Font.system(size: 14))
-                        .foregroundColor(subLine.text.isEmpty ? .gray : .black)
-                }
-                .padding(.leading, CGFloat(indentLevel) * 20)
-                
-                // 하위 SubLine 렌더링
-                ForEach(subLine.subLines, id: \.id) { childSubLine in
-                    renderSubLine(childSubLine, indentLevel: indentLevel + 1)
-                }
-            }
-            .padding(.vertical, 4)
-        )
     }
 }
 
