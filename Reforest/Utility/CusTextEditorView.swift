@@ -124,9 +124,12 @@ struct MarkdownEditorView: UIViewRepresentable {
             let lineHeight: CGFloat = 19
             let indentWidth: CGFloat = 27.5
 
+            // 텍스트 뷰의 스크롤 오프셋
+            let contentOffsetY = textView.contentOffset.y
+
             for (index, line) in lines.enumerated() {
                 let indentLevel = line.prefix(while: { $0 == "\t" }).count
-                let positionY = CGFloat(index) * lineHeight + 25.0
+                let positionY = CGFloat(index) * lineHeight + 25.0 - contentOffsetY
                 let positionX = CGFloat(indentLevel) * indentWidth + 8
 
                 // 자식 노드가 있는지 확인 (다음 줄의 들여쓰기 수준이 현재보다 깊은 경우)
@@ -147,9 +150,9 @@ struct MarkdownEditorView: UIViewRepresentable {
                 }
             }
 
+            // 부모 뷰에 오버레이 업데이트
             parent.overlays = newOverlays
         }
-
 
         func makeToolbar() -> UIToolbar {
             let toolbar = UIToolbar()
@@ -455,7 +458,6 @@ struct CusTextEditorView: View {
                 }
             }
         }
-        .navigationTitle("Markdown Editor")
     }
 }
 
