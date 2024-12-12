@@ -464,8 +464,8 @@ struct CusTextEditorView: View {
                 }
             }
         }
-        .border(Color.gray, width: 1)
         .clipped() // 경계를 벗어나는 오버레이를 잘라냄
+        // .border(Color.gray, width: 1)
     }
 }
 
