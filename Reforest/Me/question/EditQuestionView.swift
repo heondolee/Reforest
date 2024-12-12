@@ -171,38 +171,48 @@ extension EditQuestionView {
     private func parseTextToSubLines(_ text: String) -> [SubLineModel] {
         print("🔹 입력된 텍스트:\n\(text)")
 
+        // 메서드 내부에서만 사용할 SubLineModel2 정의
+        class SubLineModel2: Identifiable {
+            let id: UUID
+            var text: String
+            var indentLevel: Int
+            var listStyle: ListStyle
+            var isChecked: Bool
+            var subLines: [SubLineModel2]
+
+            init(id: UUID, text: String, indentLevel: Int, listStyle: ListStyle, isChecked: Bool, subLines: [SubLineModel2]) {
+                self.id = id
+                self.text = text
+                self.indentLevel = indentLevel
+                self.listStyle = listStyle
+                self.isChecked = isChecked
+                self.subLines = subLines
+            }
+
+            // SubLineModel로 변환하는 메서드
+            func toSubLineModel() -> SubLineModel {
+                return SubLineModel(
+                    id: self.id,
+                    text: self.text,
+                    indentLevel: self.indentLevel,
+                    listStyle: self.listStyle,
+                    isChecked: self.isChecked,
+                    subLines: self.subLines.map { $0.toSubLineModel() } // 하위 항목도 재귀적으로 변환
+                )
+            }
+        }
+
         let lines = text.components(separatedBy: "\n").filter { !$0.isEmpty }
         print("🔍 분리된 라인들: \(lines)")
 
-        var stack: [(indentLevel: Int, subLine: SubLineModel)] = []
-        var topLevelSubLines: [SubLineModel] = []
+        var rootSubLines: [SubLineModel2] = []
+        var stack: [SubLineModel2] = []
 
-        func processStack() {
-            var tempStack: [(indentLevel: Int, subLine: SubLineModel)] = []
-
-            while let last = stack.popLast() {
-                if let previous = stack.last, previous.indentLevel < last.indentLevel {
-                    stack[stack.count - 1].subLine.subLines.append(last.subLine)
-                    stack[stack.count - 1].subLine.subLines.append(contentsOf: tempStack.map { $0.subLine })
-                    tempStack.removeAll()
-                } else {
-                    tempStack.insert(last, at: 0)
-                }
-            }
-
-            // 남아있는 항목들을 최상위에 추가
-            topLevelSubLines.append(contentsOf: tempStack.map { $0.subLine })
-        }
-
-        for line in lines {
+        for (index, line) in lines.enumerated() {
             let indentLevel = line.prefix(while: { $0 == "\t" }).count
             let trimmedText = line.trimmingCharacters(in: .whitespacesAndNewlines)
 
-            print("\n📝 현재 라인: '\(line)'")
-            print("↔️ 들여쓰기 레벨: \(indentLevel)")
-            print("✂️ 공백 제거된 텍스트: '\(trimmedText)'")
-
-            let newSubLine = SubLineModel(
+            let newSubLine = SubLineModel2(
                 id: UUID(),
                 text: trimmedText,
                 indentLevel: indentLevel,
@@ -211,24 +221,36 @@ extension EditQuestionView {
                 subLines: []
             )
 
-            print("🆕 새 SubLine 생성: \(newSubLine)")
+            print("\n➡️ 처리 중인 라인 (\(index + 1)):")
+            print("  원본 라인: '\(line)'")
+            print("  들여쓰기 수준: \(indentLevel)")
+            print("  텍스트: '\(trimmedText)'")
 
-            // 스택에서 꺼낸 모델의 레벨이 현재 모델의 레벨보다 작거나 같으면 부모-자식 관계를 구성
-            if let last = stack.last, last.indentLevel >= indentLevel {
-                processStack()
+            // 스택에서 현재 indentLevel보다 큰 요소들만 제거
+            while let last = stack.last, last.indentLevel >= indentLevel {
+                print("  🔻 스택에서 제거: \(last.text) (indentLevel: \(last.indentLevel))")
+                stack.removeLast()
             }
 
-            // 현재 모델을 스택에 추가
-            stack.append((indentLevel, newSubLine))
-            print("📦 스택에 새 SubLine 추가: \(newSubLine)")
+            if let parent = stack.last {
+                // 부모의 subLines에 현재 라인을 추가
+                print("  📎 부모 (\(parent.text))에 현재 라인 추가")
+                parent.subLines.append(newSubLine)
+            } else {
+                // 최상위 레벨이면 rootSubLines에 추가
+                print("  🌳 최상위 라인으로 추가")
+                rootSubLines.append(newSubLine)
+            }
+
+            // 스택에 현재 라인을 추가
+            stack.append(newSubLine)
+            print("  🗂️ 현재 스택 상태: \(stack.map { $0.text })")
         }
 
-        // 마지막 남은 스택 처리
-        processStack()
-
-        print("\n✅ 최종 생성된 SubLines: \(topLevelSubLines)")
-        return topLevelSubLines
+        // SubLineModel2를 SubLineModel로 변환하여 반환
+        return rootSubLines.map { $0.toSubLineModel() }
     }
+
 
     private func renderAnswer(answer: Binding<AnswerModel>) -> AnyView {
         return AnyView(
