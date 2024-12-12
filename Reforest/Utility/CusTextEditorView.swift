@@ -58,6 +58,11 @@ struct MarkdownEditorView: UIViewRepresentable {
             self.answerID = answerID      
         }
 
+        // 스크롤 이벤트 감지
+        func scrollViewDidScroll(_ scrollView: UIScrollView) {
+            updateOverlays(for: scrollView as! UITextView)
+        }
+
         func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
             if text == "\n" {
                 let nsText = textView.text as NSString
@@ -150,8 +155,9 @@ struct MarkdownEditorView: UIViewRepresentable {
                 }
             }
 
-            // 부모 뷰에 오버레이 업데이트
-            parent.overlays = newOverlays
+            DispatchQueue.main.async {
+                self.parent.overlays = newOverlays
+            }
         }
 
         func makeToolbar() -> UIToolbar {
