@@ -10,7 +10,35 @@ import SwiftUI
 
 struct VisionView: View {
     var body: some View {
-        Text("비전하면 입니다.")
+        NavigationView {
+            VStack(spacing: 0) {
+                navigationView()
+                ScrollView(.vertical, showsIndicators: true) {
+                    VStack(spacing: 0) {
+                        Image("Vision")
+                            .resizable()
+                            .scaledToFill()
+                    }
+                }
+            }
+        }
+    }
+}
+
+extension VisionView {
+    private func navigationView() -> some View {
+        VStack(spacing: .zero) {
+            HStack(spacing: .zero) {
+                Text("비전")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 13)
+            Divider()
+                .padding(.bottom, 20)
+        }
     }
 }
 

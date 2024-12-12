@@ -25,7 +25,13 @@ struct HomeView: View {
         VStack(spacing: 0) {
             TopView()
             profile()
-            Spacer()
+            ScrollView(.vertical, showsIndicators: true) {
+                VStack(spacing: 0) {
+                    Image("Me")
+                        .resizable()
+                        .scaledToFill()
+                }
+            }
         }
     }
 }
