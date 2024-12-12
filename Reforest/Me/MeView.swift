@@ -126,6 +126,9 @@ extension MeView {
     }
     private func profileButtons() -> some View {
         HStack(spacing: .zero) {
+            strokeBox(image: .gift, title: "추천")
+                .padding(.trailing, 10)
+            strokeBox(title: "템플릿")
             Spacer()
             strokeBox(title: "프로필 편집")
                 .onTapGesture {
